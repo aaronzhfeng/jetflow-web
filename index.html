@@ -231,11 +231,13 @@
         </div>
         <p class="tb-copy" data-tb-copy aria-live="polite"></p>
         <figcaption class="cap">
-          One JetFlow drafting round on a MATH-500 problem. The draft head scores every next token in one pass; the
-          tree grows <strong>best-first by cumulative draft log-probability</strong>: the most-probable path
-          deepens first, while lower-probability alternatives are weighed and set aside. The target then verifies the
-          whole tree in a single pass and accepts the longest matching prefix (green); the first diverging draft is
-          rejected, and the target&rsquo;s own token is taken as a free bonus.
+          One JetFlow drafting round on a MATH-500 problem. At every position the draft head keeps the
+          <strong>top few continuations</strong> in one pass, not just the greedy guess, so the close calls stay
+          covered. After &ldquo;are&rdquo; the drafter is split three ways (given&nbsp;0.35 / told&nbsp;0.33 /
+          asked&nbsp;0.30); the target writes &ldquo;told&rdquo;, the drafter&rsquo;s second choice, and because
+          the tree had drafted it the accepted path (green) keeps going where a single greedy chain would have
+          stopped. The target verifies the whole tree in one pass and accepts the longest matching prefix; the
+          first uncovered token is rejected, and the target&rsquo;s own token is taken as a free bonus.
           <span class="src">Illustrative round (representative tokens and shape); on real runs JetFlow&rsquo;s mean accepted length reaches &tau;=10.76 tokens per round (MATH-500, budget 256).</span>
         </figcaption>
       </figure>

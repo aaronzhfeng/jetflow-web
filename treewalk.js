@@ -1,58 +1,62 @@
 /* §3 "How JetFlow builds the tree" — an illustrative, intuitive diagram of one
    drafting round (representative tokens + shape, in the spirit of DDTree's
-   explainer). Two stages: Draft (grow the tree best-first, node by node) and
-   Verify (the target accepts the longest matching prefix; the next drafted token
-   diverges and is rejected, and the target's own token is taken as a free bonus).
-   Per-edge draft probabilities show the alternatives were weighed. No deps. */
+   explainer). Two stages: Draft (grow the tree best-first, keeping the top few
+   continuations at each step) and Verify (the target accepts the longest matching
+   prefix, even where it preferred a token the drafter ranked below its top guess;
+   the next uncovered token is rejected, and the target's own token is a free
+   bonus). The three-way split after "are" is the showcase: the close-probability
+   branches mean the target's pick is not always the drafter's top, and the tree
+   covers it anyway. Per-edge draft probabilities show the alternatives were
+   weighed. No deps. */
 (function () {
   "use strict";
   var NS = "http://www.w3.org/2000/svg";
   var FRAME = { w: 1100, h: 300 };
   var COL = 90, X0 = 44;
 
-  // accepted spine threads along the top; rejected alternatives hang below.
-  // d = depth (column), y = row, p = draft prob given parent, a = on accepted path.
-  // n11 is drafted on the spine but the target rejects it; nb is the target's
-  // correction (a free bonus), revealed only at verify.
+  // accepted spine threads along the top; alternatives hang below. d = depth
+  // (column), y = row, p = draft prob given parent, a = on accepted path.
+  // dtop = the drafter's top-ranked child that the target did NOT take (the
+  // non-greedy contrast). n11 is drafted on the spine but the target rejects it;
+  // nb is the target's correction (a free bonus), revealed only at verify.
   var NODES = [
     { id: "n0", tok: "We", d: 0, y: 104, p: 1, a: true, root: true },
-    { id: "n1", tok: "are", d: 1, y: 104, p: 0.62, a: true, parent: "n0" },
-    { id: "h1", tok: "have", d: 1, y: 182, p: 0.21, parent: "n0" },
-    { id: "h2", tok: "can", d: 1, y: 250, p: 0.09, parent: "n0" },
-    { id: "n2", tok: "given", d: 2, y: 104, p: 0.58, a: true, parent: "n1" },
-    { id: "t1", tok: "told", d: 2, y: 182, p: 0.24, parent: "n1" },
-    { id: "t2", tok: "us", d: 3, y: 182, p: 0.40, parent: "t1" },
-    { id: "n3", tok: "that", d: 3, y: 104, p: 0.71, a: true, parent: "n2" },
-    { id: "n4", tok: "the", d: 4, y: 104, p: 0.66, a: true, parent: "n3" },
-    { id: "k1", tok: "two", d: 4, y: 182, p: 0.18, parent: "n3" },
-    { id: "n5", tok: "altitude", d: 5, y: 104, p: 0.54, a: true, parent: "n4" },
-    { id: "k2", tok: "legs", d: 5, y: 182, p: 0.22, parent: "n4" },
-    { id: "n6", tok: "is", d: 6, y: 104, p: 0.69, a: true, parent: "n5" },
-    { id: "k3", tok: "equals", d: 6, y: 182, p: 0.20, parent: "n5" },
-    { id: "n7", tok: "4√2", d: 7, y: 104, p: 0.61, a: true, parent: "n6" },
-    { id: "n8", tok: ",", d: 8, y: 104, p: 0.72, a: true, parent: "n7" },
-    { id: "n9", tok: "so", d: 9, y: 104, p: 0.55, a: true, parent: "n8" },
-    { id: "k4", tok: "and", d: 9, y: 182, p: 0.19, parent: "n8" },
+    { id: "n1", tok: "are", d: 1, y: 104, p: 0.58, a: true, parent: "n0" },
+    { id: "s1", tok: "have", d: 1, y: 196, p: 0.24, parent: "n0" },
+    // --- showcase: three close children of "are"; the target takes the 2nd ---
+    { id: "g1", tok: "given", d: 2, y: 182, p: 0.35, dtop: true, parent: "n1" },
+    { id: "n2", tok: "told", d: 2, y: 104, p: 0.33, a: true, parent: "n1" },
+    { id: "g2", tok: "asked", d: 2, y: 250, p: 0.30, parent: "n1" },
+    { id: "n3", tok: "that", d: 3, y: 104, p: 0.74, a: true, parent: "n2" },
+    { id: "n4", tok: "the", d: 4, y: 104, p: 0.62, a: true, parent: "n3" },
+    { id: "s2", tok: "a", d: 4, y: 182, p: 0.27, parent: "n3" },
+    { id: "n5", tok: "altitude", d: 5, y: 104, p: 0.49, a: true, parent: "n4" },
+    { id: "s3", tok: "base", d: 5, y: 182, p: 0.33, parent: "n4" },
+    { id: "n6", tok: "is", d: 6, y: 104, p: 0.61, a: true, parent: "n5" },
+    { id: "s4", tok: "equals", d: 6, y: 182, p: 0.26, parent: "n5" },
+    { id: "n7", tok: "4√2", d: 7, y: 104, p: 0.57, a: true, parent: "n6" },
+    { id: "n8", tok: ",", d: 8, y: 104, p: 0.70, a: true, parent: "n7" },
+    { id: "n9", tok: "so", d: 9, y: 104, p: 0.52, a: true, parent: "n8" },
+    { id: "s5", tok: "and", d: 9, y: 182, p: 0.31, parent: "n8" },
     { id: "n10", tok: "the", d: 10, y: 104, p: 0.64, a: true, parent: "n9" },
-    { id: "n11", tok: "area", d: 11, y: 104, p: 0.47, reject: true, parent: "n10" },
+    { id: "n11", tok: "area", d: 11, y: 104, p: 0.44, reject: true, parent: "n10" },
     { id: "nb", tok: "leg", d: 11, y: 48, bonus: true, parent: "n10" }
   ];
-  // draft reveal order (best-first: deepen the spine first; alternatives branch
-  // off as their parent expands; the lone rejected re-expansion comes last).
-  // nb (the target's bonus) is NOT drafted — it appears at verify.
+  // draft reveal order (best-first: deepen the spine; the top few children appear
+  // together as each parent expands). nb (the bonus) is NOT drafted.
   var ORDER = [
-    ["n1", "h1", "h2"], ["n2", "t1"], ["n3"], ["n4", "k1"], ["n5", "k2"],
-    ["n6", "k3"], ["n7"], ["n8"], ["n9", "k4"], ["n10"], ["n11"], ["t2"]
+    ["n1", "s1"], ["g1", "n2", "g2"], ["n3"], ["n4", "s2"], ["n5", "s3"],
+    ["n6", "s4"], ["n7"], ["n8"], ["n9", "s5"], ["n10"], ["n11"]
   ];
   var ACCEPT_N = 10;
 
   var COPY = {
-    draft: "JetFlow drafts a candidate tree in one forward pass, growing it best-first by cumulative draft log-probability; the most-probable path deepens first.",
-    verify: "The target verifies the whole tree in a single forward pass and accepts the longest matching prefix. The next drafted token diverges, so it is rejected, and the target's own token is taken as a free bonus."
+    draft: "JetFlow drafts a candidate tree in one forward pass. At every step it keeps the top few continuations, not just the single most likely one, so close calls stay covered. After “are” the drafter is split three ways.",
+    verify: "The target verifies the whole tree in one pass and accepts the longest matching prefix. After “are” it took “told”, the drafter’s second-ranked token, and because the tree had covered it the path is accepted. The first uncovered token is rejected, and the target’s own token is taken as a free bonus."
   };
   var READOUT = {
-    draft: "best-first drafting · expand by cumulative draft log-probability",
-    verify: "drafted 11 deep · accepted " + ACCEPT_N + " + 1 bonus · the 11th draft diverged and was rejected"
+    draft: "best-first drafting · keep the top few continuations at each step",
+    verify: "accepted 10 + 1 bonus · “told” (0.33) taken over the drafter’s top “given” (0.35)"
   };
 
   function el(name, attrs) {
@@ -75,6 +79,7 @@
       if (n.a && p.a) cls += " tb-acc";
       else if (n.reject) cls += " tb-rej";
       else if (n.bonus) cls += " tb-bon";
+      else if (n.dtop) cls += " tb-dtop";
       eLayer.appendChild(el("line", { x1: p.x, y1: p.y, x2: n.x, y2: n.y, class: cls, "data-edge": n.id }));
       if (!n.bonus) {
         // place the label in the GAP between the two chips' edges (not the node
@@ -93,6 +98,7 @@
       if (n.root) cls += " tb-n--root";
       if (n.bonus) cls += " tb-n--bonus";
       if (n.reject) cls += " tb-n--reject";
+      if (n.dtop) cls += " tb-n--dtop";
       if (n.a && !n.root) cls += " tb-acc";
       var g = el("g", { class: cls, "data-node": n.id, transform: "translate(" + n.x + " " + n.y + ")" });
       var w = chipW(n.tok);

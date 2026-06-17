@@ -1564,6 +1564,9 @@ body.dark .theme-toggle #sun { display: inline; }
 /* the bonus = the target's free correction token (gold, not an error colour) */
 .tb-n--bonus .tb-chip { fill: color-mix(in srgb, #caa23a 18%, var(--paper-soft)); stroke: #b6892a; }
 .tb-e.tb-bon { stroke-dasharray: 4 3; }
+/* dtop = the drafter's top-ranked child the target did NOT take (non-greedy contrast) */
+.tb-n--dtop .tb-chip { stroke: var(--accent); stroke-dasharray: 3 2; }
+.tb-e.tb-dtop { stroke: var(--accent); stroke-dasharray: 3 2; opacity: .75; }
 /* the node currently being expanded gets a brief accent ring */
 .tb-n.exp .tb-chip { stroke: var(--accent); stroke-width: 2; }
 
