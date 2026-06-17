@@ -47,8 +47,8 @@
       trees. <strong>JetFlow</strong> trains a causal parallel draft head over fused hidden states from the
       frozen target, so a candidate tree&rsquo;s scores align with the target&rsquo;s own autoregressive
       factorization and the full target verifies the whole tree in one forward pass, losslessly. A larger budget then becomes a longer accepted prefix: up to <strong>9.64&times; on
-      MATH-500</strong> and 4.58&times; on open-ended chat (Qwen3-8B, H100), with further gains under realistic
-      vLLM serving.
+      MATH-500</strong> and 4.58&times; on open-ended chat (Qwen3-8B, H100), and they carry into real
+      single-stream serving on JetFlow&rsquo;s own engine.
     </p>
 
     <!-- ===================== DEMO FIRST (autoplay) ===================== -->
