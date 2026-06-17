@@ -131,6 +131,26 @@
         </figcaption>
       </figure>
 
+      <h3 class="subhead">Training the head</h3>
+      <p>
+        Only the head is trained; the target stays frozen, so JetFlow attaches to a model already in production
+        without touching its weights. The head reads fused multi-layer features from the target and is supervised
+        against the target&rsquo;s own next-token distributions rather than hard labels, so it inherits the
+        relative preferences among candidate tokens that a tree needs in order to rank branches. Supervision is
+        causal across draft depths: every position is trained conditioned on the tokens chosen earlier in its
+        branch, which is what lets a single parallel pass emit a tree whose branches stay internally consistent.
+      </p>
+
+      <figure class="fig paperfig">
+        <img src="figures/training_supervision.png" alt="Block-wise training supervision: within each sampled block the anchor token carries no loss while the predicted draft positions are each supervised against the target.">
+        <figcaption class="cap">
+          Block-wise supervision. Within each sampled block the anchor token carries no loss; the draft positions
+          it spawns are each supervised against the target, so the head learns to score whole branches rather than
+          isolated next tokens.
+          <span class="src">Figure from the paper (block-wise supervision).</span>
+        </figcaption>
+      </figure>
+
       <div class="table-scroll">
       <table class="dtable wide">
         <thead>
@@ -158,6 +178,21 @@
         <caption>End-to-end speedup (Spd, &times; over autoregressive decoding) and mean accepted length (&tau;, tokens per round) on Qwen3-8B; budget is the draft-token count. EAGLE-3&rsquo;s autoregressive head saturates past 64 draft tokens, while JetFlow leads every benchmark at every budget under both greedy (T=0) and sampling (T=1). Numbers reproduced from the paper&rsquo;s main results table.</caption>
       </table>
       </div>
+
+      <h3 class="subhead">In context</h3>
+      <p>
+        A speculative decoder&rsquo;s speedup is the product of two terms: how many drafted tokens the target
+        accepts, and how cheaply those tokens were drafted. Most prior work improves one term at the expense of
+        the other. Autoregressive draft heads such as Medusa and EAGLE-3 follow the target&rsquo;s own
+        factorization and accept well, but they draft one token at a time, so throughput stays bounded by
+        sequential drafting. Parallel block-diffusion heads such as DFlash draft a whole block in a single pass
+        and pay almost nothing per token, but their positions are scored independently, so deeper tree branches
+        drift out of agreement with the target. Retrieval drafters skip a learned model entirely, at the cost of
+        leaning on lexical overlap or repeated text. JetFlow keeps both terms at once: it drafts an entire tree
+        in one parallel pass, at the cost of a diffusion head, while conditioning every position on its branch
+        prefix, at the acceptance of a causal head. That is why a larger draft budget keeps turning into a longer
+        accepted prefix instead of saturating.
+      </p>
     </section>
 
     <!-- ===================== TREE QUALITY ===================== -->
@@ -254,6 +289,29 @@
           <span class="ht-note">Measured wall-clock on the JetFlow engine (single B200); MATH-500 32-prompt subset.</span>
         </p>
       </div>
+    </section>
+
+    <!-- ===================== LIMITATIONS ===================== -->
+    <section class="section sec" id="limitations">
+      <p class="sec-eyebrow">Notes</p>
+      <h2>Limitations</h2>
+      <p>
+        The speedups reported here are for single-stream, batch-size-1 decoding, the regime where latency matters
+        most; behaviour under heavy concurrent serving load is an active engineering target rather than a settled
+        result. The tree path also carries a small fixed per-round cost for construction and verification
+        bookkeeping, and closing that gap is where most of the remaining engine headroom lives.
+      </p>
+    </section>
+
+    <!-- ===================== RESOURCES ===================== -->
+    <section class="section sec" id="resources">
+      <p class="sec-eyebrow">Artifacts</p>
+      <h2>Resources</h2>
+      <ul class="resource-list">
+        <li><strong>Code.</strong> The JetFlow implementation: <a href="https://github.com/snyhlxde1/parallel-tree-decoding">github.com/snyhlxde1/parallel-tree-decoding</a>.</li>
+        <li><strong>Models.</strong> The causal parallel draft-head checkpoints on Hugging Face: coming soon.</li>
+        <li><strong>Engine.</strong> The standalone serving engine behind the throughput numbers: coming soon.</li>
+      </ul>
     </section>
 
     <!-- ===================== BIBTEX ===================== -->

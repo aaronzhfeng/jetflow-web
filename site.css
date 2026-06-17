@@ -1510,6 +1510,10 @@ body.dark .theme-toggle #sun { display: inline; }
 /* subsection heads inside a section */
 .subhead { margin: 26px 0 2px; font: 600 17px/1.3 var(--sans); color: var(--primary); }
 
+.resource-list { margin: 6px 0 0; padding-left: 1.15em; color: var(--content); }
+.resource-list li { margin: 0.32em 0; }
+.resource-list a { color: var(--accent); }
+
 /* ============================================================
    §3 "How JetFlow builds the tree" — fixed-frame animated
    tree-construction demo (best-first reveal + verify).
