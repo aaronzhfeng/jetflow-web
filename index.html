@@ -293,29 +293,6 @@
       </div>
     </section>
 
-    <!-- ===================== LIMITATIONS ===================== -->
-    <section class="section sec" id="limitations">
-      <p class="sec-eyebrow">Notes</p>
-      <h2>Limitations</h2>
-      <p>
-        The speedups reported here are for single-stream, batch-size-1 decoding, the regime where latency matters
-        most; behaviour under heavy concurrent serving load is an active engineering target rather than a settled
-        result. The tree path also carries a small fixed per-round cost for construction and verification
-        bookkeeping, and closing that gap is where most of the remaining engine headroom lives.
-      </p>
-    </section>
-
-    <!-- ===================== RESOURCES ===================== -->
-    <section class="section sec" id="resources">
-      <p class="sec-eyebrow">Artifacts</p>
-      <h2>Resources</h2>
-      <ul class="resource-list">
-        <li><strong>Code.</strong> The JetFlow implementation: <a href="https://github.com/snyhlxde1/parallel-tree-decoding">github.com/snyhlxde1/parallel-tree-decoding</a>.</li>
-        <li><strong>Models.</strong> The causal parallel draft-head checkpoints on Hugging Face: coming soon.</li>
-        <li><strong>Engine.</strong> The standalone serving engine behind the throughput numbers: coming soon.</li>
-      </ul>
-    </section>
-
     <!-- ===================== BIBTEX ===================== -->
     <section class="section bib-section" id="bibtex">
       <h2>BibTeX</h2>

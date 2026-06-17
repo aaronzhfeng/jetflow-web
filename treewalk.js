@@ -56,9 +56,11 @@
   ];
   var ACCEPT_N = 10;
 
+  // draft + verify copy are kept to a matched length (~2 lines) so switching
+  // stages does not change the box height and shove the caption below it.
   var COPY = {
-    draft: "JetFlow drafts a candidate tree in one forward pass. At every position it keeps the top few continuations, fanning above and below the running text, not just the single most likely one, so every close call stays covered.",
-    verify: "The target verifies the whole tree in one pass and accepts the longest matching prefix. Twice here it preferred a token the drafter ranked below its top guess (“told” over “given”, “is” over “equals”), and because the tree had covered both, the path is accepted. The first uncovered token is rejected, and the target’s own token is taken as a free bonus."
+    draft: "JetFlow drafts the whole tree in one forward pass, keeping the top few continuations at every position, above and below the running text, not only the most likely one.",
+    verify: "The target verifies the tree in one forward pass, keeps the longest matching prefix including both non-greedy picks, and adds its own next token as a free bonus."
   };
   var READOUT = {
     draft: "best-first drafting · keep the top few continuations at each step",
