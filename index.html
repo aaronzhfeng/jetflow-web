@@ -246,11 +246,12 @@
       </p>
 
       <div class="hero-tps">
-        <div class="ht-num">968<span class="ht-unit">tok/s</span></div>
+        <div class="ht-num">1085<span class="ht-unit">tok/s</span></div>
         <p class="ht-cap">
-          JetFlow under vLLM on a single H100 (Qwen3-8B, HumanEval, batch&nbsp;1, budget&nbsp;256): a
-          <strong>6.75&times;</strong> end-to-end speedup over autoregressive serving.
-          <span class="ht-note">Measured serving throughput, from the paper&rsquo;s vLLM integration.</span>
+          JetFlow on its own engine, with no external serving dependency, on a single B200 (Qwen3-8B,
+          MATH-500, batch&nbsp;1, budget&nbsp;127): a <strong>6.64&times;</strong> end-to-end speedup over
+          autoregressive decoding, at &tau;=8.93 accepted tokens per round.
+          <span class="ht-note">Measured wall-clock on the JetFlow engine (single B200); MATH-500 32-prompt subset.</span>
         </p>
       </div>
     </section>
