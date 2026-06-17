@@ -185,7 +185,7 @@
         accepts, and how cheaply those tokens were drafted. Most prior work improves one term at the expense of
         the other. Autoregressive draft heads such as Medusa and EAGLE-3 follow the target&rsquo;s own
         factorization and accept well, but they draft one token at a time, so throughput stays bounded by
-        sequential drafting. Parallel block-diffusion heads such as DFlash draft a whole block in a single pass
+        sequential drafting. Parallel block-diffusion heads draft a whole block in a single pass
         and pay almost nothing per token, but their positions are scored independently, so deeper tree branches
         drift out of agreement with the target. Retrieval drafters skip a learned model entirely, at the cost of
         leaning on lexical overlap or repeated text. JetFlow keeps both terms at once: it drafts an entire tree
