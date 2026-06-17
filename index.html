@@ -11,8 +11,8 @@
 <body>
   <script>
     (function () {
-      var p = localStorage.getItem("jf-theme");
-      if (p === "dark" || (!p && window.matchMedia("(prefers-color-scheme: dark)").matches)) document.body.classList.add("dark");
+      // default to light (white); only honour an explicit user toggle
+      if (localStorage.getItem("jf-theme") === "dark") document.body.classList.add("dark");
     })();
   </script>
 
