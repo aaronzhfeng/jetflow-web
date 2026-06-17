@@ -1566,7 +1566,8 @@ body.dark .theme-toggle #sun { display: inline; }
 .tb-e.tb-bon { stroke-dasharray: 4 3; }
 /* dtop = the drafter's top-ranked child the target did NOT take (non-greedy contrast) */
 .tb-n--dtop .tb-chip { stroke: var(--accent); stroke-dasharray: 3 2; }
-.tb-e.tb-dtop { stroke: var(--accent); stroke-dasharray: 3 2; opacity: .75; }
+.tb-e.tb-dtop { stroke: var(--accent); stroke-dasharray: 3 2; }
+.tb-e.tb-dtop.on { opacity: 1; }
 /* the node currently being expanded gets a brief accent ring */
 .tb-n.exp .tb-chip { stroke: var(--accent); stroke-width: 2; }
 
