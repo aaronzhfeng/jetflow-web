@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>JetFlow — Parallel Tree Drafting</title>
+  <meta name="description" content="JetFlow: Breaking the Scaling Ceiling of Speculative Decoding with Parallel Tree Drafting. Live decoding replay + results from the paper.">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <script>
+    (function () {
+      var p = localStorage.getItem("jf-theme");
+      if (p === "dark" || (!p && window.matchMedia("(prefers-color-scheme: dark)").matches)) document.body.classList.add("dark");
+    })();
+  </script>
+
+  <main class="page" id="top">
+    <div class="topbar">
+      <a class="brand" href="https://haoailab.com/" title="Hao AI Lab @ UCSD">Hao AI Lab · UC San Diego</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark">
+        <svg id="moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        <svg id="sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+
+    <header class="paper-header">
+      <h1>JetFlow</h1>
+      <p class="subtitle">Breaking the Scaling Ceiling of Speculative Decoding with Parallel Tree Drafting</p>
+      <p class="authors">
+        Lanxiang Hu<sup>1</sup>&nbsp; Zhaoxiang Feng<sup>1</sup>&nbsp; Yulun Wu<sup>2</sup>&nbsp; Haoran Yuan<sup>3</sup>&nbsp; Yujie Zhao<sup>1</sup>&nbsp; Yu-Yang Qian<sup>4</sup>&nbsp; Bojun Wang<sup>5</sup>&nbsp; Daxin Jiang<sup>5</sup>&nbsp; Yibo Zhu<sup>5</sup>&nbsp; Tajana Rosing<sup>1</sup>&nbsp; Hao Zhang<sup>1</sup>
+      </p>
+      <p class="affiliations"><sup>1</sup>UC San Diego &nbsp; <sup>2</sup>Zhejiang University &nbsp; <sup>3</sup>UIUC &nbsp; <sup>4</sup>Nanjing University &nbsp; <sup>5</sup>StepFun</p>
+      <nav class="resource-links" aria-label="Project resources">
+        <a href="#">[Paper]</a>
+        <a href="https://github.com/snyhlxde1/parallel-tree-decoding">[Code]</a>
+        <a href="#bibtex">[BibTeX]</a>
+      </nav>
+    </header>
+
+    <p class="lead">
+      Speculative decoding hits a scaling ceiling: a larger draft budget helps only while acceptance stays
+      high and drafting stays cheap, and prior heads face a causality&ndash;efficiency dilemma &mdash;
+      autoregressive drafters condition on the path but cost grows with tree depth, while block-diffusion
+      drafters draft in one pass yet score branches independently, forming individually plausible but mutually
+      inconsistent trees. <strong>JetFlow</strong> trains a causal parallel draft head over fused hidden states
+      from the frozen target, so a candidate tree&rsquo;s scores align with the target&rsquo;s own
+      autoregressive factorization and the full target verifies the whole tree in one forward pass &mdash;
+      losslessly. A larger budget then becomes a longer accepted prefix: up to <strong>9.64&times; on
+      MATH-500</strong> and 4.58&times; on open-ended chat (Qwen3-8B, H100), with further gains under realistic
+      vLLM serving.
+    </p>
+
+    <!-- ===================== DEMO FIRST (autoplay) ===================== -->
+    <section class="section demo-first" id="demo">
+      <figure class="paper-figure player-figure" id="figure1">
+        <div class="figure-frame">
+          <div class="figure-toolbar">
+            <button class="run-button" id="siteRunButton" type="button">Replay</button>
+            <span class="metric-line" data-race-caption></span>
+            <span class="run-state" hidden><span data-run-state></span> <span data-clock-label></span></span>
+          </div>
+          <div class="player-shell" aria-label="Live decoding replay">
+            <div class="app-shell">
+              <header class="hero player-internal-hero" hidden>
+                <div><p class="eyebrow">JetFlow replay</p><h1>Parallel tree decoding replay</h1></div>
+                <div class="hero-stats" id="heroStats" aria-live="polite"></div>
+              </header>
+              <section class="controls" aria-label="Playback controls">
+                <button id="playToggle" class="control-button" type="button" aria-label="Pause playback">Pause</button>
+                <button id="resetButton" class="control-button secondary" type="button" aria-label="Reset playback">Reset</button>
+                <label class="speed-control" for="speedRange"><span>Speed</span><input id="speedRange" type="range" min="0.1" max="1" step="0.05" value="1"><output id="speedValue" for="speedRange">1.00x</output></label>
+                <label class="scrub-control" for="scrubRange"><span id="clockReadout">0 ms</span><input id="scrubRange" type="range" min="0" max="1" step="1" value="0"></label>
+              </section>
+              <div id="syntheticWatermark" class="watermark" hidden></div>
+              <main class="player-main">
+                <section class="player-lanes">
+                  <div class="race-panel" aria-label="Race progress">
+                    <div class="race-title"><span>Race bar</span><span id="raceSummary"></span></div>
+                    <div id="raceBars" class="race-bars"></div>
+                  </div>
+                  <div id="laneGrid" class="lane-grid" aria-live="polite"></div>
+                </section>
+                <aside class="tree-panel" aria-label="JetFlow tree panel" hidden>
+                  <div class="tree-panel-head"><div><p class="eyebrow">TreePanel</p><h2>Return Stroke</h2></div><span id="treeTimingBadge" class="timing-badge">waiting</span></div>
+                  <div id="treePanel"></div>
+                </aside>
+              </main>
+              <footer class="provenance" id="provenance"></footer>
+            </div>
+          </div>
+        </div>
+        <figcaption class="cap">
+          Same prompt, decoded three ways on Qwen3-8B. Each panel streams its tokens; the bar under it tracks
+          progress to the finish. Replay or slow it down with the controls above.
+        </figcaption>
+      </figure>
+      <p class="run-hud" data-run-hud hidden></p>
+      <p class="result-plate" data-result-plate hidden></p>
+
+      <p class="demo-note">
+        Every panel emits the same tokens autoregressive decoding would &mdash; verified against the target,
+        not approximated &mdash; and JetFlow reaches them up to <strong>9.64&times; faster end-to-end</strong>
+        on MATH-500 (Qwen3-8B, H100, greedy), ahead of the strongest diffusion-head baseline at matched budget.
+      </p>
+    </section>
+
+    <!-- ===================== HOW IT WORKS ===================== -->
+    <section class="section sec" id="approach">
+      <p class="sec-eyebrow">Approach</p>
+      <h2>How JetFlow works</h2>
+      <p>
+        Head-based speculative decoding faces a causality&ndash;efficiency dilemma: an autoregressive draft head
+        conditions each token on its path but pays a forward pass per depth, while a block-diffusion head drafts
+        a whole block in one pass yet scores positions independently, composing branches the target rejects.
+        JetFlow keeps the one-pass efficiency and recovers the conditioning. Over fused hidden states from the
+        frozen target &mdash; deep features already shown to encode several future tokens &mdash; it trains a
+        <strong>causal parallel draft head</strong>: a single forward pass emits a scored candidate tree whose
+        branch scores follow the target&rsquo;s own autoregressive factorization rather than an independent
+        per-position surrogate. The frozen target then verifies the entire tree in one pass and commits the
+        longest path it agrees with, leaving the target&rsquo;s output distribution exactly unchanged.
+      </p>
+
+      <figure class="fig paperfig">
+        <img src="figures/arch_causal_head.png" alt="JetFlow architecture: feature fusion, causal-parallel draft head producing a scored candidate tree, and frozen target verification under a tree-causal attention mask.">
+        <figcaption class="cap">
+          One JetFlow round: fused target features feed the causal-parallel draft head, which emits a scored
+          candidate tree; the frozen target verifies every node in one forward pass under the tree-causal
+          attention mask and commits the longest matching path.
+          <span class="src">Figure from the paper (causal parallel draft head).</span>
+        </figcaption>
+      </figure>
+
+      <div class="table-scroll">
+      <table class="dtable wide">
+        <thead>
+          <tr><th rowspan="2">Method</th><th class="num" rowspan="2">Budget</th><th class="num grp-col" colspan="2">GSM8K</th><th class="num grp-col" colspan="2">MATH-500</th><th class="num grp-col" colspan="2">AIME25</th><th class="num grp-col" colspan="2">HumanEval</th><th class="num grp-col" colspan="2">MBPP</th><th class="num grp-col" colspan="2">LCB</th><th class="num grp-col" colspan="2">MT-Bench</th></tr>
+          <tr><th class="num sub">Spd</th><th class="num sub">τ</th><th class="num sub">Spd</th><th class="num sub">τ</th><th class="num sub">Spd</th><th class="num sub">τ</th><th class="num sub">Spd</th><th class="num sub">τ</th><th class="num sub">Spd</th><th class="num sub">τ</th><th class="num sub">Spd</th><th class="num sub">τ</th><th class="num sub">Spd</th><th class="num sub">τ</th></tr>
+        </thead>
+        <tbody>
+          <tr class="grp"><th colspan="16">Temperature = 0 (greedy)</th></tr>
+          <tr><th>EAGLE-3</th><td class="num">64</td><td class="num">2.53</td><td class="num">4.31</td><td class="num">2.36</td><td class="num">4.13</td><td class="num">2.35</td><td class="num">4.04</td><td class="num">2.49</td><td class="num">4.26</td><td class="num">2.22</td><td class="num">3.81</td><td class="num">2.09</td><td class="num">3.62</td><td class="num">2.19</td><td class="num">3.88</td></tr>
+          <tr><th>DFlash-T</th><td class="num">64</td><td class="num">5.63</td><td class="num">6.18</td><td class="num">6.51</td><td class="num">7.16</td><td class="num">6.40</td><td class="num">6.96</td><td class="num">5.08</td><td class="num">5.57</td><td class="num">4.99</td><td class="num">5.49</td><td class="num">5.47</td><td class="num">6.06</td><td class="num">3.74</td><td class="num">4.51</td></tr>
+          <tr><th>DFlash-T</th><td class="num">128</td><td class="num">6.63</td><td class="num">7.31</td><td class="num">8.27</td><td class="num">9.19</td><td class="num">7.93</td><td class="num">8.66</td><td class="num">5.93</td><td class="num">6.52</td><td class="num">5.70</td><td class="num">6.28</td><td class="num">6.42</td><td class="num">7.25</td><td class="num">4.12</td><td class="num">5.14</td></tr>
+          <tr><th>DFlash-T</th><td class="num">256</td><td class="num">7.04</td><td class="num">7.77</td><td class="num">8.78</td><td class="num">9.81</td><td class="num">8.33</td><td class="num">9.24</td><td class="num">6.31</td><td class="num">6.96</td><td class="num">6.09</td><td class="num">6.70</td><td class="num">6.75</td><td class="num">7.72</td><td class="num">4.26</td><td class="num">5.41</td></tr>
+          <tr><th>JetFlow</th><td class="num">64</td><td class="num">5.98</td><td class="num">6.56</td><td class="num">6.76</td><td class="num">7.42</td><td class="num">6.47</td><td class="num">7.00</td><td class="num">5.53</td><td class="num">6.06</td><td class="num">5.34</td><td class="num">5.88</td><td class="num">5.95</td><td class="num">6.59</td><td class="num">3.97</td><td class="num">4.77</td></tr>
+          <tr><th>JetFlow</th><td class="num">128</td><td class="num">7.34</td><td class="num">8.05</td><td class="num">8.93</td><td class="num">9.95</td><td class="num">8.26</td><td class="num">9.10</td><td class="num">6.66</td><td class="num">7.28</td><td class="num">6.31</td><td class="num">6.95</td><td class="num">7.29</td><td class="num">8.21</td><td class="num">4.37</td><td class="num">5.52</td></tr>
+          <tr class="hl"><th>JetFlow</th><td class="num">256</td><td class="num">7.82</td><td class="num">8.62</td><td class="num">9.64</td><td class="num">10.76</td><td class="num">8.78</td><td class="num">9.82</td><td class="num">7.12</td><td class="num">7.78</td><td class="num">6.73</td><td class="num">7.43</td><td class="num">7.67</td><td class="num">8.79</td><td class="num">4.58</td><td class="num">5.94</td></tr>
+          <tr class="grp"><th colspan="16">Temperature = 1 (sampling)</th></tr>
+          <tr><th>EAGLE-3</th><td class="num">64</td><td class="num">2.35</td><td class="num">4.17</td><td class="num">2.23</td><td class="num">4.00</td><td class="num">2.11</td><td class="num">3.73</td><td class="num">2.35</td><td class="num">4.13</td><td class="num">2.13</td><td class="num">3.70</td><td class="num">1.99</td><td class="num">3.49</td><td class="num">1.96</td><td class="num">3.63</td></tr>
+          <tr><th>DFlash-T</th><td class="num">64</td><td class="num">5.28</td><td class="num">5.77</td><td class="num">5.68</td><td class="num">6.26</td><td class="num">4.94</td><td class="num">5.46</td><td class="num">4.65</td><td class="num">5.09</td><td class="num">4.65</td><td class="num">5.11</td><td class="num">5.28</td><td class="num">5.82</td><td class="num">3.50</td><td class="num">4.22</td></tr>
+          <tr><th>DFlash-T</th><td class="num">128</td><td class="num">6.11</td><td class="num">6.72</td><td class="num">6.79</td><td class="num">7.60</td><td class="num">5.40</td><td class="num">5.98</td><td class="num">5.29</td><td class="num">5.76</td><td class="num">5.22</td><td class="num">5.75</td><td class="num">5.99</td><td class="num">6.71</td><td class="num">3.66</td><td class="num">4.59</td></tr>
+          <tr><th>DFlash-T</th><td class="num">256</td><td class="num">6.41</td><td class="num">7.17</td><td class="num">7.10</td><td class="num">8.13</td><td class="num">5.26</td><td class="num">6.20</td><td class="num">5.43</td><td class="num">6.03</td><td class="num">5.49</td><td class="num">6.12</td><td class="num">6.26</td><td class="num">7.17</td><td class="num">3.81</td><td class="num">4.88</td></tr>
+          <tr><th>JetFlow</th><td class="num">64</td><td class="num">5.63</td><td class="num">6.19</td><td class="num">5.97</td><td class="num">6.60</td><td class="num">4.95</td><td class="num">5.48</td><td class="num">5.02</td><td class="num">5.52</td><td class="num">5.00</td><td class="num">5.51</td><td class="num">5.76</td><td class="num">6.38</td><td class="num">3.63</td><td class="num">4.37</td></tr>
+          <tr><th>JetFlow</th><td class="num">128</td><td class="num">6.76</td><td class="num">7.49</td><td class="num">7.39</td><td class="num">8.36</td><td class="num">5.76</td><td class="num">6.49</td><td class="num">5.82</td><td class="num">6.39</td><td class="num">5.78</td><td class="num">6.39</td><td class="num">6.84</td><td class="num">7.74</td><td class="num">3.99</td><td class="num">5.01</td></tr>
+          <tr class="hl"><th>JetFlow</th><td class="num">256</td><td class="num">7.16</td><td class="num">8.03</td><td class="num">7.83</td><td class="num">9.01</td><td class="num">5.94</td><td class="num">7.06</td><td class="num">6.19</td><td class="num">6.85</td><td class="num">6.11</td><td class="num">6.83</td><td class="num">7.25</td><td class="num">8.29</td><td class="num">4.06</td><td class="num">5.22</td></tr>
+        </tbody>
+        <caption>End-to-end speedup (Spd, &times; over autoregressive decoding) and mean accepted length (&tau;, tokens per round) on Qwen3-8B; budget is the draft-token count. EAGLE-3&rsquo;s autoregressive head saturates past 64 draft tokens, while JetFlow leads every benchmark at every budget under both greedy (T=0) and sampling (T=1). Numbers reproduced from the paper&rsquo;s main results table.</caption>
+      </table>
+      </div>
+    </section>
+
+    <!-- ===================== TREE QUALITY ===================== -->
+    <section class="section sec" id="tree">
+      <p class="sec-eyebrow">Tree construction</p>
+      <h2>Tree quality</h2>
+      <p>
+        Both heads spend the same draft budget; what differs is the quality of the tree that budget buys. JetFlow&rsquo;s
+        causal head helps in two ways the paper isolates: it keeps the <em>top-ranked</em> branch &mdash; the one the
+        verifier follows &mdash; faithful to the target, and it does so without tuning the loss-weighting&nbsp;&gamma;.
+      </p>
+
+      <h3 class="subhead">Branch faithfulness</h3>
+      <p>
+        A block-diffusion head produces all positions from one shared hidden state with no causal mask between depths,
+        so the depth-2 distribution never conditions on the token chosen at depth&nbsp;1. When two positions independently
+        favour tokens that cannot follow each other, the surrogate still scores their composition highly and promotes it
+        to the top of the tree. The causal head masks between depths, anchoring each position to the model&rsquo;s own
+        choice at the previous one, so its rank-1 branch carries a score the target agrees with. One drafting round makes
+        the difference concrete:
+      </p>
+
+      <figure class="treebuild" id="treewalk" data-stage="draft" data-head="jetflow">
+        <div class="tb-toolbar">
+          <div class="tb-stages" role="group" aria-label="Stages">
+            <button class="tb-stage" type="button" data-go="draft"><span class="tb-si">01</span> Draft tree</button>
+            <button class="tb-stage" type="button" data-go="verify"><span class="tb-si">02</span> Verify</button>
+          </div>
+          <div class="tb-right">
+            <button class="tb-replay" type="button" data-replay aria-label="Replay">↻ Replay</button>
+          </div>
+        </div>
+        <div class="tb-frame">
+          <div class="tb-canvas"></div>
+          <div class="tb-readout" data-tb-readout></div>
+        </div>
+        <p class="tb-copy" data-tb-copy aria-live="polite"></p>
+        <figcaption class="cap">
+          One JetFlow drafting round on a MATH-500 problem. The draft head scores every next token in one pass; the
+          tree grows <strong>best-first by cumulative draft log-probability</strong> &mdash; the most-probable path
+          deepens first, while lower-probability alternatives are weighed and set aside. The target then verifies the
+          whole tree in a single pass and accepts the longest matching prefix (green); the first diverging draft is
+          rejected, and the target&rsquo;s own token is taken as a free bonus.
+          <span class="src">Illustrative round (representative tokens and shape); on real runs JetFlow accepts up to ~17 tokens per round.</span>
+        </figcaption>
+      </figure>
+
+      <table class="dtable">
+        <thead><tr><th>Rank-1 branch faithfulness (50 MATH-500 prompts, γ=0)</th><th class="num">Causal</th><th class="num">Diffusion</th></tr></thead>
+        <tbody>
+          <tr><th>Faithful rank-1 (&lt;+5 nats)</th><td class="num win">42%</td><td class="num">6%</td></tr>
+          <tr><th>Extreme gap (≥+80 nats)</th><td class="num win">0%</td><td class="num">26%</td></tr>
+          <tr><th>Mean accepted length</th><td class="num win">9.46</td><td class="num">4.84</td></tr>
+        </tbody>
+        <caption>Across 50 prompts the causal head keeps its top-ranked branch aligned with the target; the diffusion surrogate is badly miscalibrated at γ=0, leaving roughly half the accepted length on the table.</caption>
+      </table>
+
+      <h3 class="subhead">No γ tuning</h3>
+      <p>
+        Bidirectional diffusion heads recover some of this with an exponential depth-weighting γ, but only near a tuned
+        value: the diffusion head works at γ=7 and collapses at the endpoints, while the causal head holds 8.3–8.5×
+        across the whole range. The causal mask removes the need to tune γ at all.
+      </p>
+
+      <table class="dtable">
+        <thead><tr><th>MATH-500 speedup by loss-weighting</th><th class="num">γ=0</th><th class="num">γ=3</th><th class="num">γ=7</th><th class="num">γ=15</th></tr></thead>
+        <tbody>
+          <tr class="hl"><th>Causal (JetFlow)</th><td class="num win">8.29</td><td class="num win">8.50</td><td class="num win">8.40</td><td class="num win">8.41</td></tr>
+          <tr><th>Diffusion head</th><td class="num">5.46</td><td class="num">8.16</td><td class="num">8.36</td><td class="num">6.17</td></tr>
+        </tbody>
+        <caption>The causal head holds 8.3–8.5× across every diffusion-head loss-weighting γ; the diffusion head only works near its tuned γ=7 and collapses at the endpoints.</caption>
+      </table>
+    </section>
+
+    <!-- ===================== THE ENGINE ===================== -->
+    <section class="section sec" id="engine">
+      <p class="sec-eyebrow">Serving</p>
+      <h2>The engine</h2>
+      <p>
+        JetFlow runs in two regimes: an offline single-request path on optimized Triton kernels, and an
+        end-to-end serving path folded into vLLM. In both, the target verifies every speculative tree node in
+        one forward pass under a tree-attention mask, and the acceptance rule is lossless by construction — so
+        the reported speedups are invariant to hardware. A fused SM90 paged FlashAttention kernel (NVIDIA CuTe
+        DSL) applies the tree mask inside attention, without materializing a dense per-request mask.
+      </p>
+
+      <div class="hero-tps">
+        <div class="ht-num">968<span class="ht-unit">tok/s</span></div>
+        <p class="ht-cap">
+          JetFlow under vLLM on a single H100 &mdash; Qwen3-8B, HumanEval, batch&nbsp;1, budget&nbsp;256 &mdash; a
+          <strong>6.75&times;</strong> end-to-end speedup over autoregressive serving. The one-pass tree verify keeps
+          paying off under load: throughput scales to <strong>~9,950&nbsp;tok/s</strong> at batch&nbsp;16, where
+          verification saturates and smaller budgets take over.
+          <span class="ht-note">Measured serving throughput, from the paper&rsquo;s vLLM integration.</span>
+        </p>
+      </div>
+    </section>
+
+    <!-- ===================== BIBTEX ===================== -->
+    <section class="section bib-section" id="bibtex">
+      <h2>BibTeX</h2>
+      <pre><code>@inproceedings{jetflow2026,
+  title  = {JetFlow: Breaking the Scaling Ceiling of Speculative Decoding with Parallel Tree Drafting},
+  author = {Hu, Lanxiang and Feng, Zhaoxiang and Wu, Yulun and Yuan, Haoran and Zhao, Yujie and
+            Qian, Yu-Yang and Wang, Bojun and Jiang, Daxin and Zhu, Yibo and Rosing, Tajana and Zhang, Hao},
+  year   = {2026},
+  note   = {Preprint}
+}</code></pre>
+    </section>
+
+    <footer class="footer">
+      <a href="#">Paper</a>
+      <a href="https://github.com/snyhlxde1/parallel-tree-decoding">Code</a>
+      <a href="#demo">Live demo</a>
+    </footer>
+      <p class="preview-note" style="text-align:center; font:12px/1.6 var(--sans); color:var(--faint); margin:10px 0 0;">Preview build &mdash; the live replay uses simulated timing; the results tables are the paper’s measured numbers. §3 tree is illustrative.</p>
+
+  </main>
+
+  <script>
+    window.PTD_DEMO_AUTOSTART = true;   /* demo autoplays on load */
+    window.PTD_DEMO_LANES = window.PTD_DEMO_LANES || [];
+  </script>
+  <script src="lane_ar_hf.js"></script>
+  <script src="lane_vllm_ar.js"></script>
+  <script src="lane_dflash.js"></script>
+  <script src="lane_ptd.js"></script>
+  <script>
+    window.PTD_DEMO_LANES_ALL = (window.PTD_DEMO_LANES || []).slice();
+    window.PTD_DEMO_LANES = window.PTD_DEMO_LANES_ALL.filter(function (lane) { return lane.lane.method !== "vLLM"; });
+  </script>
+  <script src="tree-panel.js"></script>
+  <script src="player.js"></script>
+  <script src="site.js"></script>
+
+  <script>
+    /* pin each terminal to its latest tokens + clean lane labels (PTD→JetFlow, no SYNTHETIC) */
+    (function () {
+      var grid = document.getElementById("laneGrid");
+      if (!grid) return;
+      var pin = function () {
+        grid.querySelectorAll("[data-stream]").forEach(function (s) { s.scrollTop = s.scrollHeight; });
+      };
+      new MutationObserver(pin).observe(grid, { subtree: true, childList: true, characterData: true });
+      setInterval(pin, 200);
+      var TITLES = { AR: "AR baseline", DFlash: "DFlash", PTD: "JetFlow" };
+      setTimeout(function () {
+        grid.querySelectorAll(".lane-title").forEach(function (el) {
+          var m = el.textContent.split(" - ")[0].trim();
+          if (TITLES[m]) el.textContent = TITLES[m];
+        });
+        var cap = document.querySelector("[data-race-caption]");
+        if (cap) cap.textContent = "Qwen3-8B · MATH-500 · greedy";
+      }, 80);
+    })();
+  </script>
+
+  <script>
+    (function () {
+      var btn = document.getElementById("theme-toggle");
+      if (!btn) return;
+      btn.addEventListener("click", function () {
+        document.body.classList.toggle("dark");
+        localStorage.setItem("jf-theme", document.body.classList.contains("dark") ? "dark" : "light");
+      });
+    })();
+  </script>
+
+  <script src="treewalk.js"></script>
+</body>
+</html>

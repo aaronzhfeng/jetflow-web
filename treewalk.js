@@ -1,0 +1,175 @@
+/* §3 "How JetFlow builds the tree" — an illustrative, intuitive diagram of one
+   drafting round (representative tokens + shape, in the spirit of DDTree's
+   explainer). Two stages: Draft (grow the tree best-first, node by node) and
+   Verify (the target accepts the longest matching prefix; the next drafted token
+   diverges and is rejected, and the target's own token is taken as a free bonus).
+   Per-edge draft probabilities show the alternatives were weighed. No deps. */
+(function () {
+  "use strict";
+  var NS = "http://www.w3.org/2000/svg";
+  var FRAME = { w: 1100, h: 300 };
+  var COL = 90, X0 = 44;
+
+  // accepted spine threads along the top; rejected alternatives hang below.
+  // d = depth (column), y = row, p = draft prob given parent, a = on accepted path.
+  // n11 is drafted on the spine but the target rejects it; nb is the target's
+  // correction (a free bonus), revealed only at verify.
+  var NODES = [
+    { id: "n0", tok: "We", d: 0, y: 104, p: 1, a: true, root: true },
+    { id: "n1", tok: "are", d: 1, y: 104, p: 0.62, a: true, parent: "n0" },
+    { id: "h1", tok: "have", d: 1, y: 182, p: 0.21, parent: "n0" },
+    { id: "h2", tok: "can", d: 1, y: 250, p: 0.09, parent: "n0" },
+    { id: "n2", tok: "given", d: 2, y: 104, p: 0.58, a: true, parent: "n1" },
+    { id: "t1", tok: "told", d: 2, y: 182, p: 0.24, parent: "n1" },
+    { id: "t2", tok: "us", d: 3, y: 182, p: 0.40, parent: "t1" },
+    { id: "n3", tok: "that", d: 3, y: 104, p: 0.71, a: true, parent: "n2" },
+    { id: "n4", tok: "the", d: 4, y: 104, p: 0.66, a: true, parent: "n3" },
+    { id: "k1", tok: "two", d: 4, y: 182, p: 0.18, parent: "n3" },
+    { id: "n5", tok: "altitude", d: 5, y: 104, p: 0.54, a: true, parent: "n4" },
+    { id: "k2", tok: "legs", d: 5, y: 182, p: 0.22, parent: "n4" },
+    { id: "n6", tok: "is", d: 6, y: 104, p: 0.69, a: true, parent: "n5" },
+    { id: "k3", tok: "equals", d: 6, y: 182, p: 0.20, parent: "n5" },
+    { id: "n7", tok: "4√2", d: 7, y: 104, p: 0.61, a: true, parent: "n6" },
+    { id: "n8", tok: ",", d: 8, y: 104, p: 0.72, a: true, parent: "n7" },
+    { id: "n9", tok: "so", d: 9, y: 104, p: 0.55, a: true, parent: "n8" },
+    { id: "k4", tok: "and", d: 9, y: 182, p: 0.19, parent: "n8" },
+    { id: "n10", tok: "the", d: 10, y: 104, p: 0.64, a: true, parent: "n9" },
+    { id: "n11", tok: "area", d: 11, y: 104, p: 0.47, reject: true, parent: "n10" },
+    { id: "nb", tok: "leg", d: 11, y: 48, bonus: true, parent: "n10" }
+  ];
+  // draft reveal order (best-first: deepen the spine first; alternatives branch
+  // off as their parent expands; the lone rejected re-expansion comes last).
+  // nb (the target's bonus) is NOT drafted — it appears at verify.
+  var ORDER = [
+    ["n1", "h1", "h2"], ["n2", "t1"], ["n3"], ["n4", "k1"], ["n5", "k2"],
+    ["n6", "k3"], ["n7"], ["n8"], ["n9", "k4"], ["n10"], ["n11"], ["t2"]
+  ];
+  var ACCEPT_N = 10;
+
+  var COPY = {
+    draft: "JetFlow drafts a candidate tree in one forward pass, growing it best-first by cumulative draft log-probability — the most-probable path deepens first.",
+    verify: "The target verifies the whole tree in a single forward pass and accepts the longest matching prefix. The next drafted token diverges, so it is rejected — and the target's own token is taken as a free bonus."
+  };
+  var READOUT = {
+    draft: "best-first drafting · expand by cumulative draft log-probability",
+    verify: "drafted 11 deep · accepted " + ACCEPT_N + " + 1 bonus · the 11th draft diverged and was rejected"
+  };
+
+  function el(name, attrs) {
+    var n = document.createElementNS(NS, name);
+    for (var k in attrs) if (attrs.hasOwnProperty(k)) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+  function chipW(t) { return Math.max(32, 8.2 * t.length + 16); }
+
+  function build(mount) {
+    var by = {}; NODES.forEach(function (n) { n.x = X0 + n.d * COL; by[n.id] = n; });
+    var svg = el("svg", { viewBox: "0 0 " + FRAME.w + " " + FRAME.h, class: "tb-svg", role: "img", "aria-label": "Tree construction" });
+
+    var eLayer = el("g", { class: "tb-edges" });
+    var pLayer = el("g", { class: "tb-plabels" });
+    NODES.forEach(function (n) {
+      if (!n.parent) return;
+      var p = by[n.parent];
+      var cls = "tb-e";
+      if (n.a && p.a) cls += " tb-acc";
+      else if (n.reject) cls += " tb-rej";
+      else if (n.bonus) cls += " tb-bon";
+      eLayer.appendChild(el("line", { x1: p.x, y1: p.y, x2: n.x, y2: n.y, class: cls, "data-edge": n.id }));
+      if (!n.bonus) {
+        // place the label in the GAP between the two chips' edges (not the node
+        // centre midpoint), so it never lands on a wide chip
+        var gx = ((p.x + chipW(p.tok) / 2) + (n.x - chipW(n.tok) / 2)) / 2;
+        var t = el("text", { x: gx, y: (p.y + n.y) / 2 - 9, class: "tb-pl", "data-pl": n.id });
+        t.textContent = n.p.toFixed(2);
+        pLayer.appendChild(t);
+      }
+    });
+    svg.appendChild(eLayer);
+
+    var nLayer = el("g", { class: "tb-nodes" });
+    NODES.forEach(function (n) {
+      var cls = "tb-n";
+      if (n.root) cls += " tb-n--root";
+      if (n.bonus) cls += " tb-n--bonus";
+      if (n.reject) cls += " tb-n--reject";
+      if (n.a && !n.root) cls += " tb-acc";
+      var g = el("g", { class: cls, "data-node": n.id, transform: "translate(" + n.x + " " + n.y + ")" });
+      var w = chipW(n.tok);
+      g.appendChild(el("rect", { x: -w / 2, y: -13, width: w, height: 26, rx: 6, class: "tb-chip" }));
+      var tx = el("text", { x: 0, y: 4, class: "tb-tok" });
+      tx.textContent = n.tok;
+      g.appendChild(tx);
+      nLayer.appendChild(g);
+    });
+    svg.appendChild(nLayer);
+    svg.appendChild(pLayer);
+
+    mount.innerHTML = "";
+    mount.appendChild(svg);
+    return svg;
+  }
+
+  function init() {
+    var tw = document.getElementById("treewalk");
+    if (!tw) return;
+    var mount = tw.querySelector(".tb-canvas");
+    if (!mount) return;
+    var copyEl = tw.querySelector("[data-tb-copy]");
+    var readEl = tw.querySelector("[data-tb-readout]");
+    var stageBtns = Array.prototype.slice.call(tw.querySelectorAll(".tb-stage"));
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    var svg = build(mount);
+    var timers = [];
+    var auto = !reduce.matches;
+
+    function clearTimers() { timers.forEach(window.clearTimeout); timers = []; }
+    function show(id, on) {
+      ["[data-node=\"", "[data-edge=\"", "[data-pl=\""].forEach(function (sel) {
+        var n = svg.querySelector(sel + id + "\"]"); if (n) n.classList.toggle("on", on);
+      });
+    }
+    function flash(id) {
+      var n = svg.querySelector('[data-node="' + id + '"]'); if (!n) return;
+      n.classList.add("exp"); timers.push(window.setTimeout(function () { n.classList.remove("exp"); }, 360));
+    }
+    function setStage(stage) {
+      tw.dataset.stage = stage;
+      if (copyEl) copyEl.textContent = COPY[stage] || "";
+      if (readEl) readEl.textContent = READOUT[stage] || "";
+      stageBtns.forEach(function (b) { b.classList.toggle("active", b.dataset.go === stage); });
+    }
+
+    function toDraft(autoNext) {
+      clearTimers(); setStage("draft");
+      NODES.forEach(function (n) { show(n.id, n.id === "n0"); }); // start from root; hide bonus
+      var step = 340;
+      ORDER.forEach(function (grp, i) {
+        timers.push(window.setTimeout(function () { grp.forEach(function (id) { show(id, true); flash(id); }); }, 260 + i * step));
+      });
+      if (autoNext && auto) timers.push(window.setTimeout(function () { toVerify(true); }, 260 + ORDER.length * step + 700));
+    }
+    function toVerify(autoNext) {
+      clearTimers(); setStage("verify");
+      NODES.forEach(function (n) { show(n.id, true); }); // reveal all incl. the bonus
+      if (autoNext && auto) timers.push(window.setTimeout(function () { toDraft(true); }, 5000));
+    }
+    var GO = { draft: toDraft, verify: toVerify };
+    stageBtns.forEach(function (b) { b.addEventListener("click", function () { auto = false; GO[b.dataset.go](false); }); });
+    var rb = tw.querySelector("[data-replay]");
+    if (rb) rb.addEventListener("click", function () { auto = !reduce.matches; toDraft(true); });
+
+    setStage("draft");
+    NODES.forEach(function (n) { show(n.id, n.id === "n0"); });
+    if ("IntersectionObserver" in window) {
+      var seen = false;
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) { if (e.isIntersecting && !seen) { seen = true; if (auto) toDraft(true); } });
+      }, { threshold: 0.3 });
+      io.observe(tw);
+    } else if (auto) { toDraft(true); }
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();

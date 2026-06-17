@@ -1,0 +1,1628 @@
+:root {
+  /* Hao AI Lab foundation (Hugo PaperMod, "adapted by Lanxiang Hu / Hao Zhang").
+     LIGHT palette; dark via body.dark (appended block). Pure white, system
+     fonts, 860px centered, light/dark toggle. */
+  --paper: #ffffff;        /* page background (PaperMod --theme, pure white) */
+  --paper-soft: #f5f5f6;   /* sunken tracks / wells */
+  --card: #ffffff;         /* raised panels (PaperMod --entry) */
+  --ink: #1f1f1f;          /* body text (PaperMod --content) */
+  --primary: #1e1e1e;      /* headings (PaperMod --primary) */
+  --muted: #6c6c6c;        /* PaperMod --secondary */
+  --faint: #9a9a9a;
+  --rule: #ebebeb;         /* PaperMod --border */
+  --rule-strong: #d6d6d6;  /* PaperMod --tertiary */
+  --accent: #1f6f8f;       /* one restrained teal accent (links / active tabs) */
+  --accent-soft: rgba(31, 111, 143, 0.10);
+  --ember: #c2682e;        /* the single "best" marker accent */
+  --data-slate: #3b6ea8;   /* chart series: the rival (DFlash) */
+  --data-green: #2f8f5f;   /* chart series: ours (JetFlow) */
+  --data-orange: #c98739;
+  --scope: #0c1420;
+  --scope-2: #111d2d;
+  --scope-line: #2b3a4d;
+  --scope-text: #ebe7dd;
+  --scope-muted: #aaa49a;
+  --scope-good: #84bd80;
+  --scope-warn: #d7aa5d;
+  --scope-bad: #d47a72;
+  /* PaperMod is all system-sans; --serif aliases the same stack (no web fonts) */
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  --serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Monaco, "Cascadia Code", "Roboto Mono", monospace;
+  --maxw: 1040px;     /* ONE width shared by the demo, text, and tables */
+  --measure: 1040px;  /* text shares the demo width (no breakout) */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.page {
+  width: min(var(--maxw), calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 18px 0 72px;
+}
+
+.paper-header {
+  text-align: center;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--rule);
+}
+
+h1,
+h2,
+h3,
+p,
+figure {
+  margin-top: 0;
+}
+
+h1 {
+  max-width: none;
+  margin: 0 auto 8px;
+  font-size: clamp(38px, 5vw, 58px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+h2 {
+  margin-bottom: 12px;
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1.22;
+}
+
+h3 {
+  margin-bottom: 7px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.28;
+}
+
+p {
+  margin-bottom: 16px;
+}
+
+.subtitle {
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 19px;
+}
+
+.authors,
+.affiliations,
+.resource-links,
+.footer {
+  font-family: var(--sans);
+}
+
+.authors {
+  margin-bottom: 4px;
+  font-size: 17px;
+}
+
+.affiliations {
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.resource-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 14px;
+  font-size: 16px;
+}
+
+.abstract,
+.section,
+.figure-section {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.abstract {
+  padding: 20px 0;
+}
+
+.abstract h2 {
+  margin-bottom: 8px;
+}
+
+.abstract p {
+  margin-bottom: 0;
+  font-size: 17px;
+  line-height: 1.52;
+}
+
+.paper-figure {
+  margin: 12px 0 0;
+}
+
+/* Figure-led candidate: Figure 1 breaks out of the text column so the live
+   player, especially the tree panel, carries the page. */
+.paper-figure.player-figure {
+  width: min(1380px, calc(100vw - 34px));
+  margin-left: calc((min(1380px, 100vw - 34px) - 100%) / -2);
+  margin-right: calc((min(1380px, 100vw - 34px) - 100%) / -2);
+}
+
+.figure-frame {
+  border: 1px solid var(--rule-strong);
+  background: #fffdfa;
+}
+
+.figure-toolbar {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rule);
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 14px;
+}
+
+.run-button,
+.control-button {
+  min-height: 34px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.run-button {
+  padding: 5px 15px;
+}
+
+.run-state,
+.metric-line {
+  min-width: 0;
+}
+
+.metric-line {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paper-figure figcaption {
+  max-width: 980px;
+  margin: 12px auto 0;
+  color: var(--muted);
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.48;
+}
+
+.run-hud,
+.result-plate {
+  margin: 12px 0 0;
+  padding: 9px 11px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 26px;
+}
+
+.steps article {
+  min-width: 0;
+}
+
+.steps p,
+.measurement-notes p {
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.tree-figure {
+  border: 1px solid var(--rule);
+  padding: 12px;
+  background: #fffdfa;
+}
+
+.tree-breakout-panel {
+  min-height: 210px;
+}
+
+.results-table {
+  width: 100%;
+  margin-top: 18px;
+  border-collapse: collapse;
+  font-family: var(--serif);
+  font-size: 16px;
+}
+
+.results-table caption {
+  caption-side: top;
+  padding-bottom: 9px;
+  color: var(--muted);
+  font-size: 15px;
+  text-align: left;
+}
+
+.results-table th,
+.results-table td {
+  padding: 9px 8px;
+  border-top: 1px solid var(--rule);
+  border-right: 0;
+  border-left: 0;
+  vertical-align: top;
+  text-align: left;
+}
+
+.results-table thead th {
+  border-top: 1.5px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  font-weight: 600;
+}
+
+.results-table tbody tr:last-child th,
+.results-table tbody tr:last-child td {
+  border-bottom: 1.5px solid var(--ink);
+}
+
+.results-table .num,
+.results-table td:nth-child(3),
+.results-table td:nth-child(4),
+.results-table td:nth-child(5) {
+  font-family: var(--mono);
+  font-size: 14px;
+}
+
+.measurement-notes {
+  margin-top: 24px;
+}
+
+.measurement-notes h3 {
+  margin-bottom: 8px;
+}
+
+pre {
+  overflow-x: auto;
+  margin: 14px 0 0;
+  padding: 16px;
+  border: 1px solid var(--rule);
+  background: var(--paper-soft);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding-top: 28px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.player-shell {
+  width: 100%;
+  overflow: hidden;
+  background: radial-gradient(120% 95% at 50% 0%, var(--scope-2), var(--scope) 72%);
+  color: var(--scope-text);
+  mix-blend-mode: normal;
+}
+
+.player-shell .app-shell {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.player-internal-hero {
+  display: none;
+}
+
+.player-shell .controls {
+  display: grid;
+  grid-template-columns: auto auto minmax(170px, 250px) minmax(210px, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid var(--scope-line);
+  background: #101a29;
+}
+
+.control-button {
+  min-width: 78px;
+  padding: 7px 12px;
+}
+
+.control-button.secondary {
+  border-color: var(--scope-line);
+  background: transparent;
+  color: var(--scope-text);
+}
+
+.speed-control,
+.scrub-control {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+  color: var(--scope-muted);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.speed-control {
+  grid-template-columns: auto 1fr auto;
+}
+
+.scrub-control {
+  grid-template-columns: minmax(64px, auto) 1fr;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.watermark {
+  margin: 12px;
+  padding: 10px 14px;
+  border: 1px solid rgba(215, 170, 93, 0.55);
+  background: rgba(215, 170, 93, 0.12);
+  color: var(--scope-warn);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.player-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(430px, 520px);
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+}
+
+.lane-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+@media (max-width: 1080px) {
+  .lane-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .player-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lane-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: #ffffff;
+}
+
+.lane-card.leader {
+  border-color: rgba(132, 189, 128, 0.85);
+}
+
+.terminal-chrome {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 34px;
+  padding: 7px 9px;
+  border-bottom: 1px solid var(--rule);
+  background: #fffdfa;
+}
+
+.traffic {
+  display: flex;
+  gap: 5px;
+}
+
+.traffic span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--scope-bad);
+}
+
+.traffic span:nth-child(2) {
+  background: var(--scope-warn);
+}
+
+.traffic span:nth-child(3) {
+  background: #2f7a3d;
+}
+
+.lane-title {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stat-pill,
+.timing-badge,
+.finish-badge {
+  display: inline-flex;
+  min-height: 23px;
+  align-items: center;
+  padding: 3px 7px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: #fffdfa;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.timing-badge.real {
+  color: #2f7a3d;
+  border-color: rgba(132, 189, 128, 0.55);
+}
+
+.timing-badge.synthetic {
+  color: var(--scope-warn);
+}
+
+.timing-badge.invalid {
+  color: var(--scope-bad);
+}
+
+.terminal-body {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+}
+
+.stream-text {
+  min-height: 128px;
+  max-height: 184px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--rule);
+  background: #ffffff;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.stream-burst {
+  border-bottom: 1px solid rgba(132, 189, 128, 0.24);
+}
+
+.stream-burst.is-linked {
+  background: rgba(132, 189, 128, 0.12);
+}
+
+.cursor::after {
+  color: var(--scope-good);
+  content: "▌";
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.metric {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--rule);
+  background: #fffdfa;
+  font-family: var(--mono);
+}
+
+.metric span {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.metric strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.progress-track {
+  height: 9px;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  background: #ffffff;
+}
+
+.progress-fill {
+  width: 0;
+  height: 100%;
+  background: #2f7a3d;
+}
+
+.lane-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.race-panel {
+  border: 1px solid var(--rule);
+  background: #fffdfa;
+}
+
+.tree-panel {
+  border: 1px solid var(--rule-strong);
+  background: #08111e;
+}
+
+.race-title,
+.tree-panel-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--scope-line);
+  color: var(--scope-muted);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.race-title {
+  border-bottom: 1px solid var(--rule);
+  color: var(--muted);
+}
+
+.race-bars {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.race-row {
+  display: grid;
+  grid-template-columns: 64px 1fr 40px;
+  gap: 8px;
+  align-items: center;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.tree-panel h2,
+.tree-panel .eyebrow {
+  margin: 0;
+  color: var(--scope-text);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+#treePanel {
+  min-height: 360px;
+}
+
+.provenance {
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--scope-line);
+  color: var(--scope-muted);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+@media (max-width: 820px) {
+  body {
+    font-size: 17px;
+  }
+
+  .page {
+    width: min(100vw - 22px, 940px);
+    padding-top: 34px;
+  }
+
+  .figure-toolbar,
+  .player-shell .controls,
+  .player-main,
+  .steps,
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-line {
+    white-space: normal;
+  }
+
+  .results-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+/* ---- Light document-card skin for the race (DDTree-anatomy reference) ----
+   The lane cards read as white documents on the academic page; only the
+   Return Stroke tree canvas stays a dark instrument inset. */
+.player-shell {
+  background: var(--paper-soft);
+  color: var(--ink);
+}
+
+.player-shell .controls {
+  background: #fffdfa;
+  border-bottom: 1px solid var(--rule);
+}
+
+.player-shell .controls .control-button {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #fffdfa;
+}
+
+.player-shell .controls .control-button.secondary {
+  background: transparent;
+  border-color: var(--rule-strong);
+  color: var(--ink);
+}
+
+.player-shell .speed-control,
+.player-shell .scrub-control {
+  color: var(--muted);
+}
+
+.player-shell .race-bar-panel,
+.player-shell .race-bars,
+.player-shell .race-row {
+  background: transparent;
+  color: var(--muted);
+}
+
+.player-shell .lane-card {
+  background: #ffffff;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(36, 33, 29, 0.08);
+  color: var(--ink);
+}
+
+.player-shell .lane-card.leader {
+  border-color: var(--accent);
+}
+
+.player-shell .terminal-chrome {
+  background: #fffdfa;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink);
+}
+
+.player-shell .terminal-chrome .traffic {
+  display: none; /* macOS-terminal affordance; wrong register for document cards */
+}
+
+.player-shell .lane-title {
+  color: var(--ink);
+  font-family: var(--sans);
+  font-weight: 600;
+}
+
+.player-shell .timing-badge {
+  background: var(--accent);
+  color: #fffdfa;
+  border: none;
+}
+
+.player-shell .timing-badge.synthetic {
+  border: 1px solid rgba(126, 83, 0, 0.35);
+  background: #fff2cf;
+  color: #6b4700;
+}
+
+.player-shell .terminal-body {
+  background: #ffffff;
+}
+
+.player-shell .stream-text {
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.player-shell .metric-grid .metric span {
+  color: var(--faint);
+}
+
+.player-shell .metric-grid .metric strong {
+  color: var(--ink);
+}
+
+.player-shell .progress-track {
+  background: var(--paper-soft);
+  border: 1px solid var(--rule);
+}
+
+.player-shell .progress-fill {
+  background: var(--accent);
+}
+
+.player-shell .lane-foot {
+  color: var(--muted);
+}
+
+.player-shell .lane-foot .finish-badge {
+  background: var(--ink);
+  color: #fffdfa;
+  border: none;
+}
+
+/* tree panel stays a dark instrument inset, framed like a sub-figure */
+.player-shell .tree-panel,
+.player-shell .tree-panel-frame {
+  background: var(--scope);
+  border: 1px solid var(--rule-strong);
+  border-radius: 4px;
+}
+
+/* idle preview: the full recorded text shown dimmed before the first run */
+.player-shell .stream-text.stream-preview {
+  color: var(--faint);
+}
+
+/* ============================================================
+   Production layout (c6): venue, numbered sections, paper
+   tables, headline stat, engine cards. Built on the C3 skin.
+   ============================================================ */
+
+.venue {
+  margin-bottom: 10px;
+  color: var(--faint);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  font-style: italic;
+}
+
+/* Numbered section eyebrow + lede */
+.sec-eyebrow {
+  margin-bottom: 4px;
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sec-lede {
+  max-width: 760px;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+/* Restrained headline number — one line, accent serif, not an ad */
+.headline-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 22px 0 4px;
+  padding: 14px 18px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+.headline-stat .hs-num {
+  flex: none;
+  color: var(--accent);
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.headline-stat .hs-text {
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+/* Numeric table cells: tabular, right-aligned, mono */
+.results-table th.num,
+.results-table td.num {
+  font-family: var(--mono);
+  font-size: 14px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.results-table thead th.num {
+  font-family: var(--sans);
+}
+
+/* secondary value inside a numeric cell (tau, speedup-in-parens) */
+.results-table .sub {
+  color: var(--faint);
+  font-size: 12px;
+}
+
+/* the winning / default row gets a quiet emphasis */
+.results-table tr.row-best th,
+.results-table tr.row-best td {
+  font-weight: 600;
+  background: var(--accent-soft);
+}
+
+.table-note {
+  max-width: 760px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* two paper tables side by side */
+.two-up {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+  margin-top: 22px;
+}
+
+.two-up .results-table {
+  margin-top: 0;
+}
+
+/* worked-example callout */
+.case-study {
+  margin-top: 24px;
+  padding: 16px 18px;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  background: var(--paper-soft);
+}
+
+.case-study h3 {
+  margin-bottom: 8px;
+}
+
+.case-study p {
+  margin-bottom: 0;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.case-study code {
+  padding: 1px 4px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+/* engine design cards */
+.engine-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 22px 0;
+}
+
+.engine-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--rule);
+  background: #fffdfa;
+}
+
+.engine-card h3 {
+  margin-bottom: 6px;
+}
+
+.engine-card p {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+@media (max-width: 820px) {
+  .two-up,
+  .engine-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .headline-stat {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+/* ============================================================
+   Theme E overrides + bar-chart components (loaded last → win)
+   Sans body + serif headings (DDTree structure), warm cards,
+   ink hero, and the tabbed/static horizontal bar charts that
+   replace the dense booktabs tables.
+   ============================================================ */
+
+body { font-family: var(--sans); }
+h1, h2, h3, .ttl, .sec-lede { font-family: var(--serif); }
+.abstract p, .sec-lede, .case-study p { font-family: var(--sans); }
+
+/* raised document cards pick up the lighter --card surface */
+.figure-frame,
+.engine-card,
+.tree-figure { background: var(--card); }
+
+.case-study { background: var(--card); }
+
+/* hero number in ink, not accent (restraint) */
+.headline-stat { background: transparent; }
+.headline-stat .hs-num { color: var(--ink); font-family: var(--mono); }
+
+/* ---- chart card shell ---- */
+.chart-card {
+  margin: 22px 0 4px;
+  padding: 18px 20px 20px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.chart-card h4 {
+  margin: 0 0 14px;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.chart-note {
+  max-width: 760px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+/* legend */
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 12px 0 0;
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chart-legend i {
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+/* ---- tabs ---- */
+.jf-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.jf-tab {
+  font-family: var(--sans);
+  font-size: 12.5px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  background: transparent;
+}
+
+.jf-tab.on {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+/* ---- bars ---- */
+.jf-bars { display: grid; gap: 9px; }
+
+.jf-brow {
+  display: grid;
+  grid-template-columns: 122px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.jf-blab {
+  font-family: var(--sans);
+  font-size: 12.5px;
+  color: var(--ink);
+  text-align: right;
+}
+
+.jf-btrack {
+  position: relative;
+  height: 24px;
+  background: rgba(29, 42, 54, 0.05);
+  border-radius: 3px;
+}
+
+.jf-bfill {
+  height: 100%;
+  border-radius: 3px;
+  min-width: 2px;
+}
+
+.jf-bar--win { background: var(--data-green); }
+.jf-bar--rival { background: var(--data-slate); }
+.jf-bar--base { background: #9aa6b2; }
+.jf-bfill--best { box-shadow: inset 3px 0 0 0 var(--ember); }
+
+.jf-bval {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.jf-bval--out {
+  right: auto;
+  margin-left: 8px;
+  color: var(--ink);
+}
+
+/* ---- compact "vs" comparison table (the one legit small matrix) ---- */
+.vs-table {
+  width: 100%;
+  margin-top: 18px;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.vs-table caption {
+  caption-side: top;
+  padding-bottom: 9px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: left;
+}
+
+.vs-table th,
+.vs-table td {
+  padding: 9px 10px;
+  border-top: 1px solid var(--rule);
+  text-align: left;
+}
+
+.vs-table thead th {
+  border-top: none;
+  border-bottom: 1.5px solid var(--ink);
+  font-family: var(--sans);
+  font-weight: 600;
+}
+
+.vs-table td.num,
+.vs-table th.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.vs-table tbody tr:last-child th,
+.vs-table tbody tr:last-child td {
+  border-bottom: 1.5px solid var(--ink);
+}
+
+.vs-table .col-win { color: var(--data-green); font-weight: 600; }
+
+@media (max-width: 720px) {
+  .jf-brow { grid-template-columns: 96px minmax(0, 1fr); }
+  .jf-blab { font-size: 11.5px; }
+}
+
+/* ============================================================
+   Hao-AI-Lab (PaperMod) foundation overrides — loaded last.
+   Dark mode, theme toggle, in-column Figure 1 (no tree panel),
+   consistent figure numbering, and a clearer headline number.
+   ============================================================ */
+
+/* ---- dark palette (body.dark, PaperMod) ---- */
+body.dark {
+  --paper: #1d1e20;
+  --paper-soft: #26272b;
+  --card: #26272b;
+  --ink: #c4c4c5;
+  --primary: #ffffff;
+  --muted: #9b9c9d;
+  --faint: #7c7e82;
+  --rule: #333333;
+  --rule-strong: #4a4b4f;
+  --accent: #5bb0cf;
+  --accent-soft: rgba(91, 176, 207, 0.16);
+  --data-slate: #6f9fd8;
+  --data-green: #5cc090;
+}
+
+body { transition: background-color 0.2s ease, color 0.2s ease; }
+
+/* headings use --primary (a hair stronger than body) */
+h1, h2, h3 { color: var(--primary); }
+
+/* ---- top bar with the light/dark toggle (PaperMod sun/moon) ---- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0 0;
+}
+
+.topbar .brand {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+  text-decoration: none;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--rule);
+  border-radius: var(--maxw, 8px);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.theme-toggle svg { width: 18px; height: 18px; }
+.theme-toggle #sun { display: none; }
+body.dark .theme-toggle #moon { display: none; }
+body.dark .theme-toggle #sun { display: inline; }
+
+/* ---- clearer headline number ---- */
+.headline-stat {
+  background: transparent;
+  border-left: 3px solid var(--accent);
+  padding: 10px 0 10px 18px;
+  align-items: baseline;
+}
+.headline-stat .hs-num {
+  font-family: var(--sans);
+  font-size: clamp(44px, 6vw, 60px);
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+.headline-stat .hs-text { font-size: 15px; }
+
+/* ---- Figure 1: stay in column, drop the tree panel (was too wide) ---- */
+.paper-figure.player-figure {
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+.player-shell { border-radius: 8px; }
+.figure-frame { border-radius: 8px; }
+.player-main { grid-template-columns: 1fr; }
+.tree-panel { display: none; }
+.lane-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 640px) { .lane-grid { grid-template-columns: 1fr; } }
+
+/* the dark player needs a frame so it reads as a figure on white AND dark */
+.figure-frame { border: 1px solid var(--rule-strong); }
+
+/* ---- consistent figure presentation + numbering ---- */
+.fig {
+  margin: 22px 0 0;
+  text-align: center;
+}
+.fig img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: #ffffff; /* paper figures are white-bg matplotlib/vector */
+}
+.fig figcaption,
+.paper-figure figcaption {
+  max-width: 720px;
+  margin: 10px auto 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-style: normal;
+  line-height: 1.5;
+  text-align: left;
+}
+.fig figcaption b,
+.paper-figure figcaption b,
+.chart-cap b { color: var(--primary); }
+
+.chart-card .chart-cap {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* engine cards + case study pick up the card surface in both modes */
+.engine-card { background: var(--card); }
+.case-study { background: var(--paper-soft); }
+
+/* section dividers a touch stronger for clear section division */
+.section, .abstract, .figure-section { border-bottom: 1px solid var(--rule); }
+.sec-eyebrow { color: var(--accent); }
+
+/* ============================================================
+   v2 reshape: demo-first, wider, per-lane bars, no synthetic
+   label, tables over charts, descriptive (un-numbered) captions.
+   ============================================================ */
+
+/* prose stays at a readable measure inside the wider page */
+.sec-lede,
+.section p,
+.abstract p,
+.cap,
+.chart-cap,
+.fig figcaption,
+.paper-figure figcaption,
+.demo-note { max-width: var(--measure); }
+
+/* the live demo sits first and large */
+.demo-first { padding-top: 6px; border-bottom: 1px solid var(--rule); padding-bottom: 26px; }
+.demo-first .paper-figure { margin-top: 8px; }
+
+/* hide the top aggregate race panel — each lane carries its own bar now */
+.race-panel { display: none !important; }
+
+/* honesty label removed per direction (real tapes swap in before ship) */
+#syntheticWatermark,
+.watermark,
+.timing-badge,
+.provenance { display: none !important; }
+
+/* bigger / taller lane boxes */
+.lane-grid { gap: 14px; }
+.player-shell .stream-text,
+.stream-text {
+  min-height: 200px;
+  max-height: 300px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.player-shell .terminal-body { gap: 12px; padding: 12px; }
+.lane-title { font-size: 12px; }
+
+/* per-lane progress bar made prominent, sitting under each panel */
+.player-shell .lane-card .progress-track,
+.lane-card .progress-track {
+  height: 14px;
+  border-radius: 7px;
+  margin-top: 2px;
+}
+.player-shell .lane-card .progress-fill,
+.lane-card .progress-fill { background: var(--data-green); }
+.lane-card.leader .progress-fill { background: var(--data-green); }
+/* non-winner lanes get a calmer bar so JetFlow's reads as the lead */
+.lane-card[data-lane-index="0"] .progress-fill { background: #9aa6b2; } /* AR */
+.lane-card[data-lane-index="1"] .progress-fill { background: var(--data-slate); } /* DFlash */
+
+/* condensed-abstract opener (no "Overview" label) */
+.lead {
+  margin: 6px 0 0;
+  font-size: 17px;
+  line-height: 1.66;
+  color: var(--ink);
+  max-width: var(--measure);
+}
+.lead strong { color: var(--primary); font-weight: 650; }
+
+/* prominent, self-labelling panels: each carries its method name + lane colour */
+.player-shell .lane-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary);
+}
+.player-shell .lane-title::before {
+  content: "";
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--data-green);            /* JetFlow default */
+  flex: none;
+}
+.player-shell .lane-card[data-lane-index="0"] .lane-title::before { background: #9aa6b2; }        /* AR */
+.player-shell .lane-card[data-lane-index="1"] .lane-title::before { background: var(--data-slate); } /* DFlash */
+.player-shell .lane-card { border-top: 3px solid var(--data-green); }
+.player-shell .lane-card[data-lane-index="0"] { border-top-color: #9aa6b2; }
+.player-shell .lane-card[data-lane-index="1"] { border-top-color: var(--data-slate); }
+
+/* the "what you're watching" note under the demo */
+.demo-note {
+  margin: 18px 0 0;
+  color: var(--ink);
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+.lane-key {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+  max-width: var(--measure);
+}
+.lane-key div { display: flex; gap: 10px; align-items: baseline; font-size: 14.5px; color: var(--ink); }
+.lane-key b { min-width: 92px; color: var(--primary); }
+.lane-key .sw { width: 11px; height: 11px; border-radius: 3px; flex: none; align-self: center; }
+
+/* descriptive caption (DFlash-style), no "Figure N" */
+.cap, .chart-cap, .fig figcaption, .paper-figure figcaption {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+/* clean, well-spaced data tables (not cramped booktabs) */
+.dtable {
+  width: 100%;
+  max-width: 100%;
+  margin: 16px 0 0;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.dtable caption { caption-side: bottom; padding-top: 10px; color: var(--muted); font-size: 13.5px; text-align: left; line-height: 1.5; }
+.dtable th, .dtable td { padding: 9px 8px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: baseline; }
+.dtable thead th { border-bottom: 1.5px solid var(--primary); color: var(--primary); font-weight: 600; white-space: normal; }
+.dtable tbody th { font-weight: 600; }   /* row labels (Method names) wrap freely */
+.dtable td.num, .dtable th.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.dtable tbody tr.hl td, .dtable tbody tr.hl th { background: var(--accent-soft); font-weight: 600; }
+.dtable .win { color: var(--data-green); font-weight: 600; }
+.dtable tbody tr:last-child td, .dtable tbody tr:last-child th { border-bottom: 1.5px solid var(--primary); }
+
+/* wide main-results table: 16 columns, kept compact + horizontally scrollable
+   so it never forces the page wider than the shared content width */
+.table-scroll { overflow-x: auto; margin: 16px 0 0; }
+.dtable.wide { font-size: 12px; margin-top: 0; min-width: 760px; }
+.dtable.wide th, .dtable.wide td { padding: 5px 6px; }
+.dtable.wide thead th { white-space: nowrap; }
+.dtable.wide .grp-col { text-align: center; }
+.dtable.wide th.sub { font-weight: 500; color: var(--muted); text-align: right; border-bottom: 1.5px solid var(--primary); }
+/* light rule before each benchmark group (the Spd column of each pair) */
+.dtable.wide thead tr:last-child th:nth-child(odd),
+.dtable.wide tbody td:nth-child(odd) { border-left: 1px solid var(--rule); }
+.dtable.wide .grp-col { border-left: 1px solid var(--rule); }
+/* temperature section row */
+.dtable.wide tr.grp th {
+  background: var(--paper-soft);
+  color: var(--primary);
+  font-weight: 700;
+  text-align: left;
+  padding: 8px 6px 6px;
+  letter-spacing: 0.01em;
+  border-left: none;
+}
+
+/* subsection heads inside a section */
+.subhead { margin: 26px 0 2px; font: 600 17px/1.3 var(--sans); color: var(--primary); }
+
+/* ============================================================
+   §3 "How JetFlow builds the tree" — fixed-frame animated
+   tree-construction demo (best-first reveal + verify).
+   ============================================================ */
+.treebuild {
+  margin: 18px 0 0;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--card);
+  overflow: hidden;
+}
+.tb-toolbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 10px 12px; border-bottom: 1px solid var(--rule); background: var(--paper-soft);
+}
+.tb-stages { display: flex; gap: 6px; }
+.tb-stage {
+  display: inline-flex; align-items: center; gap: 7px;
+  font: 600 12.5px/1 var(--sans); color: var(--muted);
+  background: transparent; border: 1px solid var(--rule); border-radius: 999px;
+  padding: 6px 13px 6px 9px; cursor: pointer; transition: color .2s, background .2s, border-color .2s;
+}
+.tb-stage .tb-si { font: 700 10px/1 var(--mono); color: var(--faint); }
+.tb-stage.active { color: #fff; background: var(--accent); border-color: var(--accent); }
+.tb-stage.active .tb-si { color: rgba(255, 255, 255, 0.72); }
+.tb-right { display: flex; align-items: center; gap: 14px; }
+.tb-budget-ctl { display: inline-flex; align-items: center; gap: 7px; font: 600 12px/1 var(--sans); color: var(--muted); }
+.tb-budget-ctl select { font: 600 12.5px/1 var(--sans); color: var(--primary); background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: 5px 8px; cursor: pointer; }
+.tb-replay { font: 600 12.5px/1 var(--sans); color: var(--accent); background: transparent; border: none; cursor: pointer; padding: 6px 4px; }
+.tb-dot { stroke-width: 1; }
+
+/* fixed-size canvas: the SVG keeps a fixed aspect, so nothing reflows by stage */
+.tb-frame { padding: 14px 14px 8px; }
+.tb-canvas { width: 100%; }
+.tb-svg { display: block; width: 100%; height: auto; }
+.tb-readout { margin-top: 6px; font: 11.5px/1.4 var(--mono); color: var(--muted); text-align: center; min-height: 1.4em; }
+
+/* edges + prob labels + nodes are hidden until revealed (.on) */
+.tb-e { stroke: var(--rule); stroke-width: 2; opacity: 0; transition: opacity .3s, stroke .35s, stroke-width .35s; }
+.tb-e.on { opacity: 1; }
+.tb-pl { font: 10px/1 var(--mono); fill: var(--muted); text-anchor: middle; opacity: 0; transition: opacity .3s; paint-order: stroke; stroke: var(--card); stroke-width: 3px; stroke-linejoin: round; }
+.tb-pl.on { opacity: 1; }
+.tb-n { opacity: 0; transition: opacity .3s; }
+.tb-n.on { opacity: 1; }
+.tb-chip { fill: var(--paper-soft); stroke: var(--rule); stroke-width: 1; transition: stroke .3s, fill .3s; }
+.tb-tok { font: 12px/1 var(--mono); fill: var(--ink); text-anchor: middle; }
+.tb-n--root .tb-chip { fill: var(--card); stroke: var(--muted); }
+/* the bonus = the target's free correction token (gold, not an error colour) */
+.tb-n--bonus .tb-chip { fill: color-mix(in srgb, #caa23a 18%, var(--paper-soft)); stroke: #b6892a; }
+.tb-e.tb-bon { stroke-dasharray: 4 3; }
+/* the node currently being expanded gets a brief accent ring */
+.tb-n.exp .tb-chip { stroke: var(--accent); stroke-width: 2; }
+
+/* verify: the accepted prefix lights green */
+#treewalk[data-stage="verify"] .tb-e.tb-acc { stroke: var(--data-green); stroke-width: 3; }
+#treewalk[data-stage="verify"] .tb-n.tb-acc .tb-chip { stroke: var(--data-green); stroke-width: 1.6; fill: color-mix(in srgb, var(--data-green) 13%, var(--paper-soft)); }
+/* verify: the first diverging draft is rejected; the bonus edge turns gold */
+#treewalk[data-stage="verify"] .tb-n--reject .tb-chip { stroke: var(--ember); stroke-dasharray: 3 2.5; fill: color-mix(in srgb, var(--ember) 7%, var(--paper-soft)); }
+#treewalk[data-stage="verify"] .tb-n--reject .tb-tok { fill: var(--muted); text-decoration: line-through; }
+#treewalk[data-stage="verify"] .tb-e.tb-rej { stroke: var(--ember); stroke-dasharray: 3 2.5; }
+#treewalk[data-stage="verify"] .tb-e.tb-bon { stroke: #b6892a; }
+
+/* live copy */
+.tb-copy { margin: 2px 14px 0; padding: 10px 0 12px; font: 13.5px/1.5 var(--sans); color: var(--ink); border-top: 1px solid var(--rule); min-height: 3.2em; }
+
+/* §4 hero TPS numeral (replaces the throughput table) — V2: left-rule callout */
+.hero-tps {
+  margin: 20px 0 0;
+  display: flex; align-items: baseline; gap: 22px; flex-wrap: wrap;
+  border-left: 4px solid var(--accent); padding: 6px 0 6px 22px;
+}
+.ht-num {
+  font: 700 clamp(56px, 8vw, 78px)/1 var(--sans); color: var(--ink);
+  letter-spacing: -0.03em; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.ht-num .ht-unit { font-size: 24px; font-weight: 600; color: var(--muted); margin-left: 8px; }
+.ht-cap { flex: 1 1 340px; margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--ink); }
+.ht-cap strong { color: var(--primary); }
+.ht-note { display: block; margin-top: 7px; font-size: 12.5px; color: var(--faint); }
+
+/* paper figures: smaller, framed, centered — clearly "from the paper" */
+.fig.paperfig img { max-width: min(100%, 760px); }
+.fig .src { display: block; margin-top: 4px; font-size: 12px; color: var(--faint); }
+
+/* ============================================================
+   v3: demo breaks wider (less side margin), tighter panels,
+   generation pinned to the bottom of each terminal.
+   ============================================================ */
+
+/* demo shares the one content width — no breakout (same width as the text) */
+.demo-first .player-figure {
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* tighter internal margins — streams fill the panels, less wasted whitespace */
+.player-shell .controls { padding: 8px 10px; }
+.player-main { padding: 8px; }
+.player-shell .terminal-body { gap: 8px; padding: 8px; }
+.player-shell .terminal-chrome { padding: 6px 9px; min-height: 30px; }
+.lane-grid { gap: 10px; }
+.metric-grid { gap: 6px; }
+.player-shell .metric { padding: 6px 7px; }
+
+/* generation pinned to the bottom (terminal style); JS keeps it scrolled down.
+   FIXED height (not a min/max range) so the box never resizes — the metrics +
+   progress bar below stay put while tokens stream in. */
+.player-shell .stream-text,
+.stream-text {
+  padding: 10px 12px;
+  overflow: hidden;
+  height: 420px;
+  min-height: 420px;
+  max-height: 420px;
+}
