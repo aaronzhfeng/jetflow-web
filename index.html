@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <title>JetFlow — Parallel Tree Drafting</title>
+  <title>JetFlow: Parallel Tree Drafting</title>
   <meta name="description" content="JetFlow: Breaking the Scaling Ceiling of Speculative Decoding with Parallel Tree Drafting. Live decoding replay + results from the paper.">
   <link rel="stylesheet" href="site.css">
 </head>
@@ -41,13 +41,12 @@
 
     <p class="lead">
       Speculative decoding hits a scaling ceiling: a larger draft budget helps only while acceptance stays
-      high and drafting stays cheap, and prior heads face a causality&ndash;efficiency dilemma &mdash;
-      autoregressive drafters condition on the path but cost grows with tree depth, while block-diffusion
-      drafters draft in one pass yet score branches independently, forming individually plausible but mutually
-      inconsistent trees. <strong>JetFlow</strong> trains a causal parallel draft head over fused hidden states
-      from the frozen target, so a candidate tree&rsquo;s scores align with the target&rsquo;s own
-      autoregressive factorization and the full target verifies the whole tree in one forward pass &mdash;
-      losslessly. A larger budget then becomes a longer accepted prefix: up to <strong>9.64&times; on
+      high and drafting stays cheap, and prior heads face a causality-efficiency dilemma: autoregressive
+      drafters condition on the path but cost grows with tree depth, while block-diffusion drafters draft in
+      one pass yet score branches independently, forming individually plausible but mutually inconsistent
+      trees. <strong>JetFlow</strong> trains a causal parallel draft head over fused hidden states from the
+      frozen target, so a candidate tree&rsquo;s scores align with the target&rsquo;s own autoregressive
+      factorization and the full target verifies the whole tree in one forward pass, losslessly. A larger budget then becomes a longer accepted prefix: up to <strong>9.64&times; on
       MATH-500</strong> and 4.58&times; on open-ended chat (Qwen3-8B, H100), with further gains under realistic
       vLLM serving.
     </p>
@@ -100,8 +99,8 @@
       <p class="result-plate" data-result-plate hidden></p>
 
       <p class="demo-note">
-        Every panel emits the same tokens autoregressive decoding would &mdash; verified against the target,
-        not approximated &mdash; and JetFlow reaches them up to <strong>9.64&times; faster end-to-end</strong>
+        Every panel emits the same tokens autoregressive decoding would, verified against the target rather
+        than approximated, and JetFlow reaches them up to <strong>9.64&times; faster end-to-end</strong>
         on MATH-500 (Qwen3-8B, H100, greedy), ahead of the strongest diffusion-head baseline at matched budget.
       </p>
     </section>
@@ -111,11 +110,11 @@
       <p class="sec-eyebrow">Approach</p>
       <h2>How JetFlow works</h2>
       <p>
-        Head-based speculative decoding faces a causality&ndash;efficiency dilemma: an autoregressive draft head
+        Head-based speculative decoding faces a causality-efficiency dilemma: an autoregressive draft head
         conditions each token on its path but pays a forward pass per depth, while a block-diffusion head drafts
         a whole block in one pass yet scores positions independently, composing branches the target rejects.
         JetFlow keeps the one-pass efficiency and recovers the conditioning. Over fused hidden states from the
-        frozen target &mdash; deep features already shown to encode several future tokens &mdash; it trains a
+        frozen target, deep features already shown to encode several future tokens, it trains a
         <strong>causal parallel draft head</strong>: a single forward pass emits a scored candidate tree whose
         branch scores follow the target&rsquo;s own autoregressive factorization rather than an independent
         per-position surrogate. The frozen target then verifies the entire tree in one pass and commits the
@@ -167,8 +166,8 @@
       <h2>Tree quality</h2>
       <p>
         Both heads spend the same draft budget; what differs is the quality of the tree that budget buys. JetFlow&rsquo;s
-        causal head helps in two ways the paper isolates: it keeps the <em>top-ranked</em> branch &mdash; the one the
-        verifier follows &mdash; faithful to the target, and it does so without tuning the loss-weighting&nbsp;&gamma;.
+        causal head helps in two ways the paper isolates: it keeps the <em>top-ranked</em> branch, the one the
+        verifier follows, faithful to the target, and it does so without tuning the loss-weighting&nbsp;&gamma;.
       </p>
 
       <h3 class="subhead">Branch faithfulness</h3>
@@ -198,11 +197,11 @@
         <p class="tb-copy" data-tb-copy aria-live="polite"></p>
         <figcaption class="cap">
           One JetFlow drafting round on a MATH-500 problem. The draft head scores every next token in one pass; the
-          tree grows <strong>best-first by cumulative draft log-probability</strong> &mdash; the most-probable path
+          tree grows <strong>best-first by cumulative draft log-probability</strong>: the most-probable path
           deepens first, while lower-probability alternatives are weighed and set aside. The target then verifies the
           whole tree in a single pass and accepts the longest matching prefix (green); the first diverging draft is
           rejected, and the target&rsquo;s own token is taken as a free bonus.
-          <span class="src">Illustrative round (representative tokens and shape); on real runs JetFlow accepts up to ~17 tokens per round.</span>
+          <span class="src">Illustrative round (representative tokens and shape); on real runs JetFlow&rsquo;s mean accepted length reaches &tau;=10.76 tokens per round (MATH-500, budget 256).</span>
         </figcaption>
       </figure>
 
@@ -213,7 +212,7 @@
           <tr><th>Extreme gap (≥+80 nats)</th><td class="num win">0%</td><td class="num">26%</td></tr>
           <tr><th>Mean accepted length</th><td class="num win">9.46</td><td class="num">4.84</td></tr>
         </tbody>
-        <caption>Across 50 prompts the causal head keeps its top-ranked branch aligned with the target; the diffusion surrogate is badly miscalibrated at γ=0, leaving roughly half the accepted length on the table.</caption>
+        <caption>Across 50 prompts the causal head keeps its top-ranked branch aligned with the target; at γ=0 the diffusion surrogate is miscalibrated, accepting a mean 4.84 tokens per round against the causal head&rsquo;s 9.46.</caption>
       </table>
 
       <h3 class="subhead">No γ tuning</h3>
@@ -229,7 +228,7 @@
           <tr class="hl"><th>Causal (JetFlow)</th><td class="num win">8.29</td><td class="num win">8.50</td><td class="num win">8.40</td><td class="num win">8.41</td></tr>
           <tr><th>Diffusion head</th><td class="num">5.46</td><td class="num">8.16</td><td class="num">8.36</td><td class="num">6.17</td></tr>
         </tbody>
-        <caption>The causal head holds 8.3–8.5× across every diffusion-head loss-weighting γ; the diffusion head only works near its tuned γ=7 and collapses at the endpoints.</caption>
+        <caption>MATH-500 end-to-end speedup (× over autoregressive decoding) across the diffusion-head loss-weighting γ, which exponentially downweights draft positions far from each anchor token.</caption>
       </table>
     </section>
 
@@ -240,18 +239,17 @@
       <p>
         JetFlow runs in two regimes: an offline single-request path on optimized Triton kernels, and an
         end-to-end serving path folded into vLLM. In both, the target verifies every speculative tree node in
-        one forward pass under a tree-attention mask, and the acceptance rule is lossless by construction — so
-        the reported speedups are invariant to hardware. A fused SM90 paged FlashAttention kernel (NVIDIA CuTe
-        DSL) applies the tree mask inside attention, without materializing a dense per-request mask.
+        one forward pass under a tree-attention mask, and the acceptance rule is lossless by construction, so the
+        reported speedups and average accepted length are invariant to hardware under lossless computation. A fused
+        SM90 paged FlashAttention kernel (NVIDIA CuTe DSL) applies the tree mask inside attention, without
+        materializing a dense per-request mask.
       </p>
 
       <div class="hero-tps">
         <div class="ht-num">968<span class="ht-unit">tok/s</span></div>
         <p class="ht-cap">
-          JetFlow under vLLM on a single H100 &mdash; Qwen3-8B, HumanEval, batch&nbsp;1, budget&nbsp;256 &mdash; a
-          <strong>6.75&times;</strong> end-to-end speedup over autoregressive serving. The one-pass tree verify keeps
-          paying off under load: throughput scales to <strong>~9,950&nbsp;tok/s</strong> at batch&nbsp;16, where
-          verification saturates and smaller budgets take over.
+          JetFlow under vLLM on a single H100 (Qwen3-8B, HumanEval, batch&nbsp;1, budget&nbsp;256): a
+          <strong>6.75&times;</strong> end-to-end speedup over autoregressive serving.
           <span class="ht-note">Measured serving throughput, from the paper&rsquo;s vLLM integration.</span>
         </p>
       </div>

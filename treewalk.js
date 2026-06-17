@@ -47,8 +47,8 @@
   var ACCEPT_N = 10;
 
   var COPY = {
-    draft: "JetFlow drafts a candidate tree in one forward pass, growing it best-first by cumulative draft log-probability — the most-probable path deepens first.",
-    verify: "The target verifies the whole tree in a single forward pass and accepts the longest matching prefix. The next drafted token diverges, so it is rejected — and the target's own token is taken as a free bonus."
+    draft: "JetFlow drafts a candidate tree in one forward pass, growing it best-first by cumulative draft log-probability; the most-probable path deepens first.",
+    verify: "The target verifies the whole tree in a single forward pass and accepts the longest matching prefix. The next drafted token diverges, so it is rejected, and the target's own token is taken as a free bonus."
   };
   var READOUT = {
     draft: "best-first drafting · expand by cumulative draft log-probability",
