@@ -202,7 +202,7 @@
       <p>
         Both heads spend the same draft budget; what differs is the quality of the tree that budget buys. JetFlow&rsquo;s
         causal head helps in two ways the paper isolates: it keeps the <em>top-ranked</em> branch, the one the
-        verifier follows, faithful to the target, and it does so without tuning the loss-weighting&nbsp;&gamma;.
+        verifier follows, faithful to the target, and it does so without tuning the loss weighting.
       </p>
 
       <h3 class="subhead">Branch faithfulness</h3>
@@ -243,20 +243,20 @@
       </figure>
 
       <table class="dtable">
-        <thead><tr><th>Rank-1 branch faithfulness (50 MATH-500 prompts, γ=0)</th><th class="num">Causal</th><th class="num">Diffusion</th></tr></thead>
+        <thead><tr><th>Rank-1 branch faithfulness (50 MATH-500 prompts, no loss weighting)</th><th class="num">Causal</th><th class="num">Diffusion</th></tr></thead>
         <tbody>
           <tr><th>Faithful rank-1 (&lt;+5 nats)</th><td class="num win">42%</td><td class="num">6%</td></tr>
           <tr><th>Extreme gap (≥+80 nats)</th><td class="num win">0%</td><td class="num">26%</td></tr>
           <tr><th>Mean accepted length</th><td class="num win">9.46</td><td class="num">4.84</td></tr>
         </tbody>
-        <caption>Across 50 prompts the causal head keeps its top-ranked branch aligned with the target; at γ=0 the diffusion surrogate is miscalibrated, accepting a mean 4.84 tokens per round against the causal head&rsquo;s 9.46.</caption>
+        <caption>Across 50 prompts the causal head keeps its top-ranked branch aligned with the target; without loss weighting the diffusion surrogate is miscalibrated, accepting a mean 4.84 tokens per round against the causal head&rsquo;s 9.46.</caption>
       </table>
 
-      <h3 class="subhead">No γ tuning</h3>
+      <h3 class="subhead">No loss-weighting tuning</h3>
       <p>
-        Bidirectional diffusion heads recover some of this with an exponential depth-weighting γ, but only near a tuned
-        value: the diffusion head works at γ=7 and collapses at the endpoints, while the causal head holds 8.3–8.5×
-        across the whole range. The causal mask removes the need to tune γ at all.
+        Bidirectional diffusion heads recover some of this with an exponential loss weighting, but only near a tuned
+        setting: the diffusion head peaks at a single weighting and collapses at the extremes, while the causal head
+        holds 8.3–8.5× across the whole range. The causal mask removes the need to tune any weighting at all.
       </p>
 
       <table class="dtable">
@@ -274,12 +274,12 @@
       <p class="sec-eyebrow">Serving</p>
       <h2>The engine</h2>
       <p>
-        JetFlow runs in two regimes: an offline single-request path on optimized Triton kernels, and an
-        end-to-end serving path folded into vLLM. In both, the target verifies every speculative tree node in
-        one forward pass under a tree-attention mask, and the acceptance rule is lossless by construction, so the
-        reported speedups and average accepted length are invariant to hardware under lossless computation. A fused
-        SM90 paged FlashAttention kernel (NVIDIA CuTe DSL) applies the tree mask inside attention, without
-        materializing a dense per-request mask.
+        JetFlow runs on its own standalone inference engine, with no dependency on an external serving stack. It
+        takes the minimalist philosophy of nano-vLLM as a starting point but is otherwise its own engine. The
+        target verifies every speculative tree node in one forward pass under a tree-attention mask, and the
+        acceptance rule is lossless by construction, so the reported speedups and average accepted length are
+        invariant to hardware under lossless computation. A fused SM90 paged FlashAttention kernel (NVIDIA CuTe
+        DSL) applies the tree mask inside attention, without materializing a dense per-request mask.
       </p>
 
       <div class="hero-tps">
