@@ -53,8 +53,8 @@
       one pass yet score branches independently, forming individually plausible but mutually inconsistent
       trees. <strong>JetFlow</strong> trains a causal parallel draft head over fused hidden states from the
       frozen target, so a candidate tree&rsquo;s scores align with the target&rsquo;s own autoregressive
-      factorization and the full target verifies the whole tree in one forward pass, losslessly. A larger budget then becomes a longer accepted prefix: up to <strong>9.64&times; on
-      MATH-500</strong> and 4.58&times; on open-ended chat (Qwen3-8B, H100), and they carry into real
+      factorization and the full target verifies the whole tree in one forward pass, losslessly. A larger budget then becomes a longer accepted prefix: <strong>9.64&times; on
+      MATH-500</strong> and 4.58&times; on open-ended chat (Qwen3-8B, H100, greedy, budget&nbsp;256), and these carry into real
       single-stream serving on JetFlow&rsquo;s own engine.
     </p>
 
@@ -107,9 +107,8 @@
       <p class="result-plate" data-result-plate hidden></p>
 
       <p class="demo-note">
-        Every panel emits the same tokens autoregressive decoding would, verified against the target rather
-        than approximated, and JetFlow reaches them up to <strong>9.64&times; faster end-to-end</strong>
-        on MATH-500 (Qwen3-8B, H100, greedy), ahead of the strongest diffusion-head baseline at matched budget.
+        Each panel reaches the same text autoregressive decoding would; JetFlow simply commits more tokens per
+        verified step. The measured speedups across benchmarks are in the results table below.
       </p>
     </section>
 
@@ -223,6 +222,7 @@
           <div class="figure-toolbar">
             <button class="run-button" id="engineRunButton" type="button">Replay</button>
             <span class="metric-line">JetFlow engine · Qwen3-8B · single B200 · budget&nbsp;127</span>
+            <span class="illus-badge">illustrative · sample text</span>
           </div>
           <div class="player-shell">
             <div class="ed-stage">
@@ -299,6 +299,10 @@
         </figcaption>
       </figure>
 
+      <p class="table-summary">
+        At budget&nbsp;256 (greedy), JetFlow leads DFlash-T on every benchmark: MATH-500 9.64&times; vs
+        8.78&times;, GSM8K 7.82&times; vs 7.04&times;, HumanEval 7.12&times; vs 6.31&times;. The full grid:
+      </p>
       <div class="table-scroll">
       <table class="dtable wide">
         <thead>
@@ -341,6 +345,17 @@
         prefix, at the acceptance of a causal head. That is why a larger draft budget keeps turning into a longer
         accepted prefix instead of saturating.
       </p>
+
+      <h3 class="subhead">Cost and limitations</h3>
+      <p>
+        The speedups above are end-to-end and lossless, but not uniform. Sampling (T=1) margins are smaller than
+        greedy decoding, and on the hardest reasoning sets such as AIME25 the lead over the strongest diffusion
+        baseline narrows. The measured serving speedup (6.64&times; on a single B200) sits below the 9.64&times;
+        algorithmic ceiling, because real serving adds kernel-launch and host overhead that the accepted-length
+        ratio does not capture. The optimal draft budget is itself a trade-off: a larger tree raises accepted
+        length but also the per-round verification cost, so the best operating point depends on the model and
+        the hardware.
+      </p>
     </section>
 
     <!-- ===================== BIBTEX ===================== -->
@@ -373,7 +388,6 @@
     window.PTD_DEMO_LANES = window.PTD_DEMO_LANES || [];
   </script>
   <script src="lane_ar_hf.js"></script>
-  <script src="lane_vllm_ar.js"></script>
   <script src="lane_dflash.js"></script>
   <script src="lane_ptd.js"></script>
   <script>
@@ -401,7 +415,7 @@
           if (TITLES[m]) el.textContent = TITLES[m];
         });
         var cap = document.querySelector("[data-race-caption]");
-        if (cap) cap.textContent = "Qwen3-8B · MATH-500 · greedy";
+        if (cap) cap.textContent = "Qwen3-8B · MATH-500 · greedy · synthetic timing";
       }, 80);
     })();
   </script>

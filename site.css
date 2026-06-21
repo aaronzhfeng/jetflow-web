@@ -1605,7 +1605,7 @@ body.dark .theme-toggle #sun { display: inline; }
   border-left: 4px solid var(--accent); padding: 6px 0 6px 22px;
 }
 .ht-num {
-  font: 700 clamp(56px, 8vw, 78px)/1 var(--sans); color: var(--ink);
+  font: 700 clamp(40px, 6vw, 58px)/1 var(--sans); color: var(--ink);
   letter-spacing: -0.03em; font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 .ht-num .ht-unit { font-size: 24px; font-weight: 600; color: var(--muted); margin-left: 8px; }
@@ -1702,3 +1702,20 @@ body.dark .player-shell .metric { background: var(--paper-soft); border-color: v
 body.dark .player-shell .progress-track { background: var(--paper); border-color: var(--rule); }
 body.dark .player-shell .controls { background: var(--card); border-bottom-color: var(--rule); }
 body.dark .player-shell .lane-foot .finish-badge { background: var(--accent); color: #fff; }
+
+/* wide results table: pin the Method column so the row label survives the horizontal scroll */
+.dtable.wide thead tr:first-child th:first-child,
+.dtable.wide tbody th { position: sticky; left: 0; z-index: 2; background: var(--card); }
+.dtable.wide tr.grp th { background: var(--paper-soft); }
+
+/* headline (budget-256) JetFlow rows read green; a one-line summary ledes the table */
+.dtable.wide tr.hl td.num { color: var(--data-green); font-weight: 600; }
+.table-summary { max-width: var(--measure); margin: 18px 0 0; color: var(--ink); font-size: 14.5px; line-height: 1.55; }
+
+/* engine replay: an explicit "illustrative" badge in the toolbar (honesty marker) */
+.illus-badge {
+  display: inline-flex; align-items: center; justify-self: end; padding: 2px 8px;
+  border: 1px solid rgba(126, 83, 0, 0.35); border-radius: 4px;
+  background: #fff2cf; color: #6b4700; font: 600 11px/1.2 var(--sans); white-space: nowrap;
+}
+body.dark .illus-badge { background: rgba(215, 170, 93, 0.16); color: var(--scope-warn); border-color: rgba(215, 170, 93, 0.4); }

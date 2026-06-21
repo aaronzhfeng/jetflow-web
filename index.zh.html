@@ -26,7 +26,7 @@
       <a class="brand" href="https://haoailab.com/" title="Hao AI Lab @ UCSD">Hao AI Lab · UC San Diego</a>
       <div class="topbar-tools">
         <a id="lang-toggle" class="lang-toggle" href="index.html" aria-label="Switch to English">EN</a>
-        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark" aria-pressed="false">
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="切换浅色/深色" aria-pressed="false">
         <svg id="moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
         <svg id="sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
@@ -40,7 +40,7 @@
         Lanxiang Hu<sup>1</sup>&nbsp; Zhaoxiang Feng<sup>1</sup>&nbsp; Yulun Wu<sup>2</sup>&nbsp; Haoran Yuan<sup>3</sup>&nbsp; Yujie Zhao<sup>1</sup>&nbsp; Yu-Yang Qian<sup>4</sup>&nbsp; Bojun Wang<sup>5</sup>&nbsp; Daxin Jiang<sup>5</sup>&nbsp; Yibo Zhu<sup>5</sup>&nbsp; Tajana Rosing<sup>1</sup>&nbsp; Hao Zhang<sup>1</sup>
       </p>
       <p class="affiliations"><sup>1</sup>UC San Diego &nbsp; <sup>2</sup>Zhejiang University &nbsp; <sup>3</sup>UIUC &nbsp; <sup>4</sup>Nanjing University &nbsp; <sup>5</sup>StepFun</p>
-      <nav class="resource-links" aria-label="Project resources">
+      <nav class="resource-links" aria-label="项目资源">
         <a href="https://arxiv.org/abs/2606.18394">[论文]</a>
         <a href="https://github.com/hao-ai-lab/JetFlow">[代码]</a>
         <a href="#bibtex">[BibTeX]</a>
@@ -48,7 +48,7 @@
     </header>
 
     <p class="lead">
-      投机解码（speculative decoding）存在一个扩展上限：只有当接受率维持在高位、且起草成本足够低时，更大的草稿预算才有收益；而以往的草稿头则面临因果性与效率之间的两难：自回归草稿头以路径为条件，但其成本随树深度增长；块扩散（block-diffusion）草稿头虽能一次性起草，却对各分支独立打分，从而构造出单看各自合理、彼此却互不一致的树。<strong>JetFlow</strong> 在冻结的目标模型给出的融合隐藏状态之上训练一个因果并行草稿头（causal parallel draft head），使候选树的打分与目标模型自身的自回归分解保持一致，从而由完整的目标模型一次前向传播即可无损（lossless）地验证整棵树。此时更大的预算便转化为更长的接受前缀：在 <strong>MATH-500 上加速比可达 9.64&times;</strong>，在开放式对话上达到 4.58&times;（Qwen3-8B，H100），并且这些收益能延续到 JetFlow 自有引擎上的真实单流服务中。
+      投机解码（speculative decoding）存在一个扩展上限：只有当接受率维持在高位、且起草成本足够低时，更大的草稿预算才有收益；而以往的草稿头则面临因果性与效率之间的两难：自回归草稿头以路径为条件，但其成本随树深度增长；块扩散（block-diffusion）草稿头虽能一次性起草，却对各分支独立打分，从而构造出单看各自合理、彼此却互不一致的树。<strong>JetFlow</strong> 在冻结的目标模型给出的融合隐藏状态之上训练一个因果并行草稿头（causal parallel draft head），使候选树的打分与目标模型自身的自回归分解保持一致，从而由完整的目标模型一次前向传播即可无损（lossless）地验证整棵树。此时更大的预算便转化为更长的接受前缀：在 <strong>MATH-500 上加速比为 9.64&times;</strong>，在开放式对话上为 4.58&times;（Qwen3-8B，H100，贪心，预算 256），并且这些收益能延续到 JetFlow 自有引擎上的真实单流服务中。
     </p>
 
     <!-- ===================== DEMO FIRST (autoplay) ===================== -->
@@ -60,28 +60,28 @@
             <span class="metric-line" data-race-caption></span>
             <span class="run-state" hidden><span data-run-state></span> <span data-clock-label></span></span>
           </div>
-          <div class="player-shell" aria-label="Live decoding replay">
+          <div class="player-shell" aria-label="实时解码回放">
             <div class="app-shell">
               <header class="hero player-internal-hero" hidden>
                 <div><p class="eyebrow">JetFlow replay</p><h1>Parallel tree decoding replay</h1></div>
                 <div class="hero-stats" id="heroStats" aria-live="polite"></div>
               </header>
-              <section class="controls" aria-label="Playback controls">
-                <button id="playToggle" class="control-button" type="button" aria-label="Pause playback">暂停</button>
-                <button id="resetButton" class="control-button secondary" type="button" aria-label="Reset playback">重置</button>
+              <section class="controls" aria-label="播放控制">
+                <button id="playToggle" class="control-button" type="button" aria-label="暂停播放">暂停</button>
+                <button id="resetButton" class="control-button secondary" type="button" aria-label="重置播放">重置</button>
                 <label class="speed-control" for="speedRange"><span>速度</span><input id="speedRange" type="range" min="0.1" max="1" step="0.05" value="1"><output id="speedValue" for="speedRange">1.00x</output></label>
                 <label class="scrub-control" for="scrubRange"><span id="clockReadout">0 ms</span><input id="scrubRange" type="range" min="0" max="1" step="1" value="0"></label>
               </section>
               <div id="syntheticWatermark" class="watermark" hidden></div>
               <main class="player-main">
                 <section class="player-lanes">
-                  <div class="race-panel" aria-label="Race progress">
+                  <div class="race-panel" aria-label="竞速进度">
                     <div class="race-title"><span>Race bar</span><span id="raceSummary"></span></div>
                     <div id="raceBars" class="race-bars"></div>
                   </div>
                   <div id="laneGrid" class="lane-grid" aria-live="polite"></div>
                 </section>
-                <aside class="tree-panel" aria-label="JetFlow tree panel" hidden>
+                <aside class="tree-panel" aria-label="JetFlow 树面板" hidden>
                   <div class="tree-panel-head"><div><p class="eyebrow">TreePanel</p><h2>Return Stroke</h2></div><span id="treeTimingBadge" class="timing-badge">waiting</span></div>
                   <div id="treePanel"></div>
                 </aside>
@@ -98,7 +98,7 @@
       <p class="result-plate" data-result-plate hidden></p>
 
       <p class="demo-note">
-        每个面板输出的 token 与自回归解码完全一致——经目标模型验证而非近似得到，而 JetFlow 在 MATH-500 上端到端可达 <strong>9.64&times; 加速</strong>（Qwen3-8B，H100，贪心），在同等预算下领先最强的扩散头基线。
+        每个面板最终给出的文本与自回归解码完全一致；JetFlow 只是在每个验证步中提交更多 token。各基准上的实测加速比见下方结果表。
       </p>
     </section>
 
@@ -117,19 +117,19 @@
 
       <figure class="treebuild" id="treewalk" data-stage="draft" data-head="jetflow">
         <div class="tb-toolbar">
-          <div class="tb-stages" role="group" aria-label="Stages">
+          <div class="tb-stages" role="group" aria-label="阶段">
             <button class="tb-stage" type="button" data-go="draft"><span class="tb-si">01</span> 起草树</button>
             <button class="tb-stage" type="button" data-go="verify"><span class="tb-si">02</span> 验证</button>
           </div>
           <div class="tb-right">
-            <button class="tb-replay" type="button" data-replay aria-label="Replay">↻ 重放</button>
+            <button class="tb-replay" type="button" data-replay aria-label="重放">↻ 重放</button>
           </div>
         </div>
         <div class="tb-frame">
           <div class="tb-canvas"></div>
           <div class="tb-readout" data-tb-readout></div>
         </div>
-        <ul class="tb-legend" aria-label="Tree colour key">
+        <ul class="tb-legend" aria-label="树配色图例">
           <li><i class="sw sw-acc"></i>接受路径</li>
           <li><i class="sw sw-dtop"></i>草稿头的首选（未被采纳）</li>
           <li><i class="sw sw-rej"></i>被拒绝</li>
@@ -187,6 +187,7 @@
           <div class="figure-toolbar">
             <button class="run-button" id="engineRunButton" type="button">重放</button>
             <span class="metric-line">JetFlow 引擎 · Qwen3-8B · 单张 B200 · 预算 127</span>
+            <span class="illus-badge">演示性 · 示例文本</span>
           </div>
           <div class="player-shell">
             <div class="ed-stage">
@@ -223,7 +224,7 @@
       </p>
 
       <figure class="fig paperfig">
-        <img src="figures/arch_causal_head.png" alt="JetFlow architecture: feature fusion, causal-parallel draft head producing a scored candidate tree, and frozen target verification under a tree-causal attention mask.">
+        <img src="figures/arch_causal_head.png" alt="JetFlow 架构：特征融合、因果并行草稿头生成带打分的候选树，以及冻结的目标模型在树形因果注意力掩码下的验证。">
         <figcaption class="cap">
           JetFlow 的一轮流程：融合后的目标模型特征送入因果并行草稿头，后者输出带打分的候选树；冻结的目标模型在树形因果注意力掩码下，以一次前向传播验证每个节点，并提交最长的匹配路径。<span class="src">图引自论文（因果并行草稿头）。</span>
         </figcaption>
@@ -235,12 +236,15 @@
       </p>
 
       <figure class="fig paperfig">
-        <img src="figures/training_supervision.png" alt="Block-wise training supervision: within each sampled block the anchor token carries no loss while the predicted draft positions are each supervised against the target.">
+        <img src="figures/training_supervision.png" alt="块级训练监督：在每个采样块内，锚点 token 不计损失，而预测的草稿位置各自以目标模型为监督。">
         <figcaption class="cap">
           逐块监督。在每个采样块内，锚点 token 不承担损失；由它派生出的各草稿位置则分别以目标模型为监督，于是草稿头学会的是对整条分支打分，而非孤立的下一 token。<span class="src">图引自论文（逐块监督）。</span>
         </figcaption>
       </figure>
 
+      <p class="table-summary">
+        在预算 256（贪心）下，JetFlow 在每个基准上都领先 DFlash-T：MATH-500 9.64&times; 对 8.78&times;，GSM8K 7.82&times; 对 7.04&times;，HumanEval 7.12&times; 对 6.31&times;。完整表格：
+      </p>
       <div class="table-scroll">
       <table class="dtable wide">
         <thead>
@@ -272,6 +276,11 @@
       <h3 class="subhead">定位与对比</h3>
       <p>
         投机解码器的加速比是两个因子的乘积：目标模型接受了多少起草出的 token，以及起草这些 token 的代价有多低。多数已有工作都以牺牲一个因子为代价改善另一个。Medusa、EAGLE-3 等自回归草稿头遵循目标模型自身的分解、接受表现良好，但它们一次只起草一个 token，因而吞吐量始终受限于串行起草。并行块扩散头一次传播即可起草整个块、单 token 代价几近于零，但各位置独立打分，于是更深的树分支会逐渐偏离与目标模型的一致。检索式草稿器干脆跳过学习模型，代价是依赖词面重叠或重复文本。JetFlow 同时保住了两个因子：它以扩散头的代价、在一次并行传播中起草整棵树，同时又让每个位置都以其分支前缀为条件、获得因果草稿头的接受表现。这正是为何更大的草稿预算能持续转化为更长的接受前缀，而不是趋于饱和。
+      </p>
+
+      <h3 class="subhead">成本与局限</h3>
+      <p>
+        上述加速比是端到端且无损的，但并非处处一致。采样（T=1）下的优势小于贪心解码，在 AIME25 等最难的推理集上，相对最强扩散基线的领先幅度也会收窄。实测的服务加速比（单张 B200 上 6.64&times;）低于 9.64&times; 的算法上限，因为真实服务会引入接受长度比所无法体现的核函数启动与主机开销。最优草稿预算本身也是一种权衡：更大的树会提高接受长度，但也会增加每轮的验证成本，因此最佳工作点取决于模型与硬件。
       </p>
     </section>
 
@@ -305,7 +314,6 @@
     window.PTD_DEMO_LANES = window.PTD_DEMO_LANES || [];
   </script>
   <script src="lane_ar_hf.js"></script>
-  <script src="lane_vllm_ar.js"></script>
   <script src="lane_dflash.js"></script>
   <script src="lane_ptd.js"></script>
   <script>
@@ -333,7 +341,7 @@
           if (TITLES[m]) el.textContent = TITLES[m];
         });
         var cap = document.querySelector("[data-race-caption]");
-        if (cap) cap.textContent = "Qwen3-8B · MATH-500 · 贪心";
+        if (cap) cap.textContent = "Qwen3-8B · MATH-500 · 贪心 · 合成计时";
       }, 80);
     })();
   </script>
