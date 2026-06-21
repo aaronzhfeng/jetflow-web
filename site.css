@@ -14,6 +14,7 @@
   --accent: #1f6f8f;       /* one restrained teal accent (links / active tabs) */
   --accent-soft: rgba(31, 111, 143, 0.10);
   --ember: #c2682e;        /* the single "best" marker accent */
+  --dtop: #7c4dcf;         /* drafter's top pick the target passes over (non-greedy) */
   --data-slate: #3b6ea8;   /* chart series: the rival (DFlash) */
   --data-green: #2f8f5f;   /* chart series: ours (JetFlow) */
   --data-orange: #c98739;
@@ -1241,6 +1242,7 @@ body.dark {
   --accent-soft: rgba(91, 176, 207, 0.16);
   --data-slate: #6f9fd8;
   --data-green: #5cc090;
+  --dtop: #b49be8;
 }
 
 body { transition: background-color 0.2s ease, color 0.2s ease; }
@@ -1561,9 +1563,11 @@ body.dark .theme-toggle #sun { display: inline; }
 /* the bonus = the target's free correction token (gold, not an error colour) */
 .tb-n--bonus .tb-chip { fill: color-mix(in srgb, #caa23a 18%, var(--paper-soft)); stroke: #b6892a; }
 .tb-e.tb-bon { stroke-dasharray: 4 3; }
-/* dtop = the drafter's top-ranked child the target did NOT take (non-greedy contrast) */
-.tb-n--dtop .tb-chip { stroke: var(--accent); stroke-dasharray: 3 2; }
-.tb-e.tb-dtop { stroke: var(--accent); stroke-dasharray: 3 2; }
+/* dtop = the drafter's top-ranked child the target passes over (the non-greedy
+   advantage): bold violet, distinct from the ember reject and the green accept */
+.tb-n--dtop .tb-chip { stroke: var(--dtop); stroke-width: 2; stroke-dasharray: 3 2; fill: color-mix(in srgb, var(--dtop) 12%, var(--paper-soft)); }
+.tb-n--dtop .tb-tok { fill: var(--dtop); }
+.tb-e.tb-dtop { stroke: var(--dtop); stroke-width: 2; stroke-dasharray: 3 2; }
 .tb-e.tb-dtop.on { opacity: 1; }
 /* the node currently being expanded gets a brief accent ring */
 .tb-n.exp .tb-chip { stroke: var(--accent); stroke-width: 2; }
@@ -1634,3 +1638,37 @@ body.dark .theme-toggle #sun { display: inline; }
   min-height: 420px;
   max-height: 420px;
 }
+
+/* ============================================================
+   Lanxiang batch (T013): tree colour key + legible table
+   annotations + the §4 single-column engine replay.
+   ============================================================ */
+
+/* colour key under the §3 tree (legible on a small viewport) */
+.tb-legend {
+  display: flex; flex-wrap: wrap; gap: 6px 16px;
+  margin: 8px 14px 0; padding: 0; list-style: none;
+  font: 600 11.5px/1.3 var(--sans); color: var(--muted);
+}
+.tb-legend li { display: inline-flex; align-items: center; gap: 7px; }
+.tb-legend .sw { width: 13px; height: 13px; border-radius: 3px; flex: none; border: 1.5px solid var(--rule-strong); }
+.tb-legend .sw-acc { border-color: var(--data-green); background: color-mix(in srgb, var(--data-green) 16%, transparent); }
+.tb-legend .sw-dtop { border-color: var(--dtop); border-style: dashed; background: color-mix(in srgb, var(--dtop) 14%, transparent); }
+.tb-legend .sw-rej { border-color: var(--ember); border-style: dashed; background: color-mix(in srgb, var(--ember) 10%, transparent); }
+.tb-legend .sw-bon { border-color: #b6892a; background: color-mix(in srgb, #caa23a 18%, transparent); }
+
+/* table-caption lead clause stands out by colour, same font size */
+.dtable caption b { color: var(--primary); font-weight: 600; }
+
+/* §4 engine single-column replay */
+.engine-demo-figure { margin-top: 22px; }
+.engine-demo-figure .ed-stage { padding: 12px; }
+.engine-demo-figure .ed-card { border-top: 3px solid var(--data-green); }
+.engine-demo-figure .ed-card .terminal-chrome { grid-template-columns: 1fr auto; }
+.engine-demo-figure .ed-badge {
+  display: inline-flex; align-items: center; padding: 3px 8px;
+  border-radius: 4px; background: var(--accent); color: #fffdfa;
+  font: 10px/1 var(--mono);
+}
+.engine-demo-figure .ed-stream { height: 240px; min-height: 240px; max-height: 240px; }
+.engine-demo-figure .ed-metrics .metric strong { font-size: 14px; }

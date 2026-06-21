@@ -105,6 +105,144 @@
       </p>
     </section>
 
+    <!-- ===================== TREE QUALITY ===================== -->
+    <section class="section sec" id="tree">
+      <p class="sec-eyebrow">Tree quality</p>
+      <h2>Tree drafting &amp; verification</h2>
+      <p>
+        Both heads spend the same draft budget; what differs is the quality of the tree that budget buys. JetFlow&rsquo;s
+        causal head helps in two ways the paper isolates: it keeps the <em>top-ranked</em> branch, the one the
+        verifier follows, faithful to the target, and it does so without tuning the loss weighting.
+      </p>
+
+      <h3 class="subhead">Branch faithfulness</h3>
+      <p>
+        A block-diffusion head produces all positions from one shared hidden state with no causal mask between depths,
+        so the depth-2 distribution never conditions on the token chosen at depth&nbsp;1. When two positions independently
+        favour tokens that cannot follow each other, the surrogate still scores their composition highly and promotes it
+        to the top of the tree. The causal head masks between depths, anchoring each position to the model&rsquo;s own
+        choice at the previous one, so its rank-1 branch carries a score the target agrees with. One drafting round makes
+        the difference concrete:
+      </p>
+
+      <figure class="treebuild" id="treewalk" data-stage="draft" data-head="jetflow">
+        <div class="tb-toolbar">
+          <div class="tb-stages" role="group" aria-label="Stages">
+            <button class="tb-stage" type="button" data-go="draft"><span class="tb-si">01</span> Draft tree</button>
+            <button class="tb-stage" type="button" data-go="verify"><span class="tb-si">02</span> Verify</button>
+          </div>
+          <div class="tb-right">
+            <button class="tb-replay" type="button" data-replay aria-label="Replay">↻ Replay</button>
+          </div>
+        </div>
+        <div class="tb-frame">
+          <div class="tb-canvas"></div>
+          <div class="tb-readout" data-tb-readout></div>
+        </div>
+        <ul class="tb-legend" aria-label="Tree colour key">
+          <li><i class="sw sw-acc"></i>accepted path</li>
+          <li><i class="sw sw-dtop"></i>drafter&rsquo;s top pick (not taken)</li>
+          <li><i class="sw sw-rej"></i>rejected</li>
+          <li><i class="sw sw-bon"></i>free bonus</li>
+        </ul>
+        <p class="tb-copy" data-tb-copy aria-live="polite"></p>
+        <figcaption class="cap">
+          One JetFlow drafting round on a MATH-500 problem. At every position the draft head keeps the
+          <strong>top few continuations</strong> in one pass, fanning above and below the running text, not just
+          the greedy guess. Twice here the target writes a token the drafter ranked second (&ldquo;told&rdquo;
+          over &ldquo;given&rdquo;&nbsp;0.36, &ldquo;is&rdquo; over &ldquo;equals&rdquo;&nbsp;0.39, both marked in violet as the drafter&rsquo;s top pick);
+          because the tree had drafted both, the accepted path (green) keeps going where a single greedy chain
+          would have stopped. The target verifies the whole tree in one pass and accepts the longest matching
+          prefix; the first uncovered token is rejected, and the target&rsquo;s own token is taken as a free bonus.
+          <span class="src">Illustrative round (representative tokens and shape); on real runs JetFlow&rsquo;s mean accepted length reaches &tau;=10.76 tokens per round (MATH-500, budget 256).</span>
+        </figcaption>
+      </figure>
+
+      <table class="dtable">
+        <thead><tr><th>Rank-1 branch faithfulness (50 MATH-500 prompts, no loss weighting)</th><th class="num">Causal</th><th class="num">Diffusion</th></tr></thead>
+        <tbody>
+          <tr><th>Faithful rank-1 (&lt;+5 nats)</th><td class="num win">42%</td><td class="num">6%</td></tr>
+          <tr><th>Extreme gap (≥+80 nats)</th><td class="num win">0%</td><td class="num">26%</td></tr>
+          <tr><th>Mean accepted length</th><td class="num win">9.46</td><td class="num">4.84</td></tr>
+        </tbody>
+        <caption><b>Across 50 MATH-500 prompts the causal head keeps its top-ranked branch aligned with the target.</b> Without loss weighting the diffusion surrogate is miscalibrated, accepting a mean 4.84 tokens per round against the causal head&rsquo;s 9.46.</caption>
+      </table>
+
+      <h3 class="subhead">No loss-weighting tuning</h3>
+      <p>
+        Bidirectional diffusion heads recover some of this with an exponential loss weighting, but only near a tuned
+        setting: the diffusion head peaks at a single weighting and collapses at the extremes, while the causal head
+        holds 8.3–8.5× across the whole range. The causal mask removes the need to tune any weighting at all.
+      </p>
+
+      <table class="dtable">
+        <thead><tr><th>MATH-500 speedup by loss-weighting</th><th class="num">γ=0</th><th class="num">γ=3</th><th class="num">γ=7</th><th class="num">γ=15</th></tr></thead>
+        <tbody>
+          <tr class="hl"><th>Causal (JetFlow)</th><td class="num win">8.29</td><td class="num win">8.50</td><td class="num win">8.40</td><td class="num win">8.41</td></tr>
+          <tr><th>Diffusion head</th><td class="num">5.46</td><td class="num">8.16</td><td class="num">8.36</td><td class="num">6.17</td></tr>
+        </tbody>
+        <caption><b>MATH-500 end-to-end speedup (× over autoregressive decoding) by loss weighting γ.</b> γ exponentially downweights draft positions far from each anchor token; the causal head holds across the whole range and needs no such tuning.</caption>
+      </table>
+    </section>
+
+    <!-- ===================== THE ENGINE ===================== -->
+    <section class="section sec" id="engine">
+      <p class="sec-eyebrow">Serving</p>
+      <h2>The engine</h2>
+      <p>
+        JetFlow runs on its own standalone inference engine, with no dependency on an external serving stack. It
+        takes the minimalist philosophy of nano-vLLM as a starting point but is otherwise its own engine. The
+        target verifies every speculative tree node in one forward pass under a tree-attention mask, and the
+        acceptance rule is lossless by construction, so the reported speedups and average accepted length are
+        invariant to hardware under lossless computation. A fused SM90 paged FlashAttention kernel (NVIDIA CuTe
+        DSL) applies the tree mask inside attention, without materializing a dense per-request mask.
+      </p>
+
+      <div class="hero-tps">
+        <div class="ht-num">1085<span class="ht-unit">tok/s</span></div>
+        <p class="ht-cap">
+          JetFlow on its own engine, with no external serving dependency, on a single B200 (Qwen3-8B,
+          MATH-500, batch&nbsp;1, budget&nbsp;127): a <strong>6.64&times;</strong> end-to-end speedup over
+          autoregressive decoding, at &tau;=8.93 accepted tokens per round.
+          <span class="ht-note">Measured wall-clock on the JetFlow engine (single B200); MATH-500 32-prompt subset.</span>
+        </p>
+      </div>
+
+      <figure class="paper-figure engine-demo-figure" id="engineDemo">
+        <div class="figure-frame">
+          <div class="figure-toolbar">
+            <button class="run-button" id="engineRunButton" type="button">Replay</button>
+            <span class="metric-line">JetFlow engine · Qwen3-8B · single B200 · budget&nbsp;127</span>
+          </div>
+          <div class="player-shell">
+            <div class="ed-stage">
+              <div class="lane-card leader ed-card">
+                <div class="terminal-chrome">
+                  <span class="lane-title">JetFlow · single-stream</span>
+                  <span class="ed-badge" data-ed-state>idle</span>
+                </div>
+                <div class="terminal-body">
+                  <pre class="stream-text ed-stream" data-ed-stream></pre>
+                  <div class="metric-grid ed-metrics">
+                    <div class="metric"><span>throughput</span><strong data-ed-tps>0 tok/s</strong></div>
+                    <div class="metric"><span>speedup</span><strong>6.64&times;</strong></div>
+                    <div class="metric"><span>accepted / round</span><strong>&tau; 8.93</strong></div>
+                  </div>
+                  <div class="progress-track ed-track"><div class="progress-fill" data-ed-fill></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <figcaption class="cap">
+          JetFlow decoding a longer MATH-500 solution on a single B200, paced to the measured
+          <strong>1085 tokens per second</strong> (6.64&times; over autoregressive decoding,
+          &tau;=8.93 accepted tokens per round).
+          <span class="src">Illustrative replay paced to the measured throughput; placeholder text, a real recorded tape drops in before ship.</span>
+        </figcaption>
+      </figure>
+    </section>
+
     <!-- ===================== HOW IT WORKS ===================== -->
     <section class="section sec" id="approach">
       <p class="sec-eyebrow">Approach</p>
@@ -195,104 +333,6 @@
       </p>
     </section>
 
-    <!-- ===================== TREE QUALITY ===================== -->
-    <section class="section sec" id="tree">
-      <p class="sec-eyebrow">Tree quality</p>
-      <h2>Tree drafting &amp; verification</h2>
-      <p>
-        Both heads spend the same draft budget; what differs is the quality of the tree that budget buys. JetFlow&rsquo;s
-        causal head helps in two ways the paper isolates: it keeps the <em>top-ranked</em> branch, the one the
-        verifier follows, faithful to the target, and it does so without tuning the loss weighting.
-      </p>
-
-      <h3 class="subhead">Branch faithfulness</h3>
-      <p>
-        A block-diffusion head produces all positions from one shared hidden state with no causal mask between depths,
-        so the depth-2 distribution never conditions on the token chosen at depth&nbsp;1. When two positions independently
-        favour tokens that cannot follow each other, the surrogate still scores their composition highly and promotes it
-        to the top of the tree. The causal head masks between depths, anchoring each position to the model&rsquo;s own
-        choice at the previous one, so its rank-1 branch carries a score the target agrees with. One drafting round makes
-        the difference concrete:
-      </p>
-
-      <figure class="treebuild" id="treewalk" data-stage="draft" data-head="jetflow">
-        <div class="tb-toolbar">
-          <div class="tb-stages" role="group" aria-label="Stages">
-            <button class="tb-stage" type="button" data-go="draft"><span class="tb-si">01</span> Draft tree</button>
-            <button class="tb-stage" type="button" data-go="verify"><span class="tb-si">02</span> Verify</button>
-          </div>
-          <div class="tb-right">
-            <button class="tb-replay" type="button" data-replay aria-label="Replay">↻ Replay</button>
-          </div>
-        </div>
-        <div class="tb-frame">
-          <div class="tb-canvas"></div>
-          <div class="tb-readout" data-tb-readout></div>
-        </div>
-        <p class="tb-copy" data-tb-copy aria-live="polite"></p>
-        <figcaption class="cap">
-          One JetFlow drafting round on a MATH-500 problem. At every position the draft head keeps the
-          <strong>top few continuations</strong> in one pass, fanning above and below the running text, not just
-          the greedy guess. Twice here the target writes a token the drafter ranked second (&ldquo;told&rdquo;
-          over &ldquo;given&rdquo;&nbsp;0.36, &ldquo;is&rdquo; over &ldquo;equals&rdquo;&nbsp;0.39, both in teal);
-          because the tree had drafted both, the accepted path (green) keeps going where a single greedy chain
-          would have stopped. The target verifies the whole tree in one pass and accepts the longest matching
-          prefix; the first uncovered token is rejected, and the target&rsquo;s own token is taken as a free bonus.
-          <span class="src">Illustrative round (representative tokens and shape); on real runs JetFlow&rsquo;s mean accepted length reaches &tau;=10.76 tokens per round (MATH-500, budget 256).</span>
-        </figcaption>
-      </figure>
-
-      <table class="dtable">
-        <thead><tr><th>Rank-1 branch faithfulness (50 MATH-500 prompts, no loss weighting)</th><th class="num">Causal</th><th class="num">Diffusion</th></tr></thead>
-        <tbody>
-          <tr><th>Faithful rank-1 (&lt;+5 nats)</th><td class="num win">42%</td><td class="num">6%</td></tr>
-          <tr><th>Extreme gap (≥+80 nats)</th><td class="num win">0%</td><td class="num">26%</td></tr>
-          <tr><th>Mean accepted length</th><td class="num win">9.46</td><td class="num">4.84</td></tr>
-        </tbody>
-        <caption>Across 50 prompts the causal head keeps its top-ranked branch aligned with the target; without loss weighting the diffusion surrogate is miscalibrated, accepting a mean 4.84 tokens per round against the causal head&rsquo;s 9.46.</caption>
-      </table>
-
-      <h3 class="subhead">No loss-weighting tuning</h3>
-      <p>
-        Bidirectional diffusion heads recover some of this with an exponential loss weighting, but only near a tuned
-        setting: the diffusion head peaks at a single weighting and collapses at the extremes, while the causal head
-        holds 8.3–8.5× across the whole range. The causal mask removes the need to tune any weighting at all.
-      </p>
-
-      <table class="dtable">
-        <thead><tr><th>MATH-500 speedup by loss-weighting</th><th class="num">γ=0</th><th class="num">γ=3</th><th class="num">γ=7</th><th class="num">γ=15</th></tr></thead>
-        <tbody>
-          <tr class="hl"><th>Causal (JetFlow)</th><td class="num win">8.29</td><td class="num win">8.50</td><td class="num win">8.40</td><td class="num win">8.41</td></tr>
-          <tr><th>Diffusion head</th><td class="num">5.46</td><td class="num">8.16</td><td class="num">8.36</td><td class="num">6.17</td></tr>
-        </tbody>
-        <caption>MATH-500 end-to-end speedup (× over autoregressive decoding) across the diffusion-head loss-weighting γ, which exponentially downweights draft positions far from each anchor token.</caption>
-      </table>
-    </section>
-
-    <!-- ===================== THE ENGINE ===================== -->
-    <section class="section sec" id="engine">
-      <p class="sec-eyebrow">Serving</p>
-      <h2>The engine</h2>
-      <p>
-        JetFlow runs on its own standalone inference engine, with no dependency on an external serving stack. It
-        takes the minimalist philosophy of nano-vLLM as a starting point but is otherwise its own engine. The
-        target verifies every speculative tree node in one forward pass under a tree-attention mask, and the
-        acceptance rule is lossless by construction, so the reported speedups and average accepted length are
-        invariant to hardware under lossless computation. A fused SM90 paged FlashAttention kernel (NVIDIA CuTe
-        DSL) applies the tree mask inside attention, without materializing a dense per-request mask.
-      </p>
-
-      <div class="hero-tps">
-        <div class="ht-num">1085<span class="ht-unit">tok/s</span></div>
-        <p class="ht-cap">
-          JetFlow on its own engine, with no external serving dependency, on a single B200 (Qwen3-8B,
-          MATH-500, batch&nbsp;1, budget&nbsp;127): a <strong>6.64&times;</strong> end-to-end speedup over
-          autoregressive decoding, at &tau;=8.93 accepted tokens per round.
-          <span class="ht-note">Measured wall-clock on the JetFlow engine (single B200); MATH-500 32-prompt subset.</span>
-        </p>
-      </div>
-    </section>
-
     <!-- ===================== BIBTEX ===================== -->
     <section class="section bib-section" id="bibtex">
       <h2>BibTeX</h2>
@@ -364,5 +404,54 @@
   </script>
 
   <script src="treewalk.js"></script>
+
+  <script>
+    /* §4 engine single-column replay: stream a longer solution paced to the
+       measured 1085 tok/s (illustrative; placeholder text, real tape later). */
+    (function () {
+      var fig = document.getElementById("engineDemo");
+      if (!fig) return;
+      var streamEl = fig.querySelector("[data-ed-stream]");
+      var tpsEl = fig.querySelector("[data-ed-tps]");
+      var fillEl = fig.querySelector("[data-ed-fill]");
+      var stateEl = fig.querySelector("[data-ed-state]");
+      var btn = document.getElementById("engineRunButton");
+      var TEXT =
+        "We are told the right triangle is isosceles with hypotenuse 8. Let each leg be x. " +
+        "By the Pythagorean theorem, x^2 + x^2 = 8^2, so 2x^2 = 64 and x^2 = 32, giving x = 4√2. " +
+        "The area of a right triangle is half the product of its legs, so the area is " +
+        "(1/2)(4√2)(4√2) = (1/2)(32) = 16. Checking: 4√2 ≈ 5.657, and 5.657^2 ≈ 32, " +
+        "so 2(32) = 64 = 8^2 as required. Hence the area is 16 square units and the perimeter is 8 + 8√2.";
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+      var DUR = 7000, raf = null, t0 = null;
+      function frame(ts) {
+        if (t0 === null) t0 = ts;
+        var p = Math.min(1, (ts - t0) / DUR);
+        streamEl.textContent = TEXT.slice(0, Math.round(p * TEXT.length));
+        streamEl.scrollTop = streamEl.scrollHeight;
+        fillEl.style.width = (p * 100).toFixed(1) + "%";
+        tpsEl.textContent = Math.round(700 + 385 * p) + " tok/s";
+        if (p < 1) { raf = window.requestAnimationFrame(frame); }
+        else { tpsEl.textContent = "1085 tok/s"; stateEl.textContent = "1085 tok/s"; }
+      }
+      function run() {
+        if (raf) window.cancelAnimationFrame(raf);
+        t0 = null; stateEl.textContent = "streaming";
+        if (reduce.matches) {
+          streamEl.textContent = TEXT; fillEl.style.width = "100%";
+          tpsEl.textContent = "1085 tok/s"; stateEl.textContent = "1085 tok/s"; return;
+        }
+        raf = window.requestAnimationFrame(frame);
+      }
+      if (btn) btn.addEventListener("click", run);
+      if ("IntersectionObserver" in window) {
+        var seen = false;
+        var io = new IntersectionObserver(function (es) {
+          es.forEach(function (e) { if (e.isIntersecting && !seen) { seen = true; run(); } });
+        }, { threshold: 0.35 });
+        io.observe(fig);
+      } else { run(); }
+    })();
+  </script>
 </body>
 </html>
