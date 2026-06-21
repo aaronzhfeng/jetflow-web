@@ -1286,6 +1286,18 @@ h1, h2, h3 { color: var(--primary); }
 body.dark .theme-toggle #moon { display: none; }
 body.dark .theme-toggle #sun { display: inline; }
 
+/* language toggle (EN <-> 中文), sits beside the theme toggle */
+.topbar-tools { display: flex; align-items: center; gap: 8px; }
+.lang-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 34px; padding: 0 12px;
+  border: 1px solid var(--rule); border-radius: 8px;
+  background: var(--card); color: var(--ink);
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  text-decoration: none; cursor: pointer;
+}
+.lang-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
 /* ---- clearer headline number ---- */
 .headline-stat {
   background: transparent;

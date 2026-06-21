@@ -66,6 +66,13 @@
     draft: "best-first drafting · keep the top few continuations at each step",
     verify: "accepted 10 + 1 bonus · 2 non-greedy picks (“told”, “is”) taken over the drafter’s top"
   };
+  // localization: the Chinese page sets window.JF_LANG + window.JF_TREE_ZH before
+  // this script; the English page leaves them unset and falls back to the consts.
+  function L(group, stage, fallback) {
+    var z = window.JF_TREE_ZH;
+    if (window.JF_LANG === "zh" && z && z[group] && z[group][stage]) return z[group][stage];
+    return fallback;
+  }
 
   function el(name, attrs) {
     var n = document.createElementNS(NS, name);
@@ -149,8 +156,8 @@
     }
     function setStage(stage) {
       tw.dataset.stage = stage;
-      if (copyEl) copyEl.textContent = COPY[stage] || "";
-      if (readEl) readEl.textContent = READOUT[stage] || "";
+      if (copyEl) copyEl.textContent = L("copy", stage, COPY[stage] || "");
+      if (readEl) readEl.textContent = L("readout", stage, READOUT[stage] || "");
       stageBtns.forEach(function (b) { b.classList.toggle("active", b.dataset.go === stage); });
     }
 
