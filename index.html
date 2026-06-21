@@ -96,6 +96,7 @@
         <figcaption class="cap">
           Same prompt, decoded three ways on Qwen3-8B. Each panel streams its tokens; the bar under it tracks
           progress to the finish. Replay or slow it down with the controls above.
+          <span class="src">Illustrative replay: each lane is synthetic, paced to a representative per-method throughput, not a live wall-clock race.</span>
         </figcaption>
       </figure>
       <p class="run-hud" data-run-hud hidden></p>
@@ -424,7 +425,7 @@
         "By the Pythagorean theorem, x^2 + x^2 = 8^2, so 2x^2 = 64 and x^2 = 32, giving x = 4√2. " +
         "The area of a right triangle is half the product of its legs, so the area is " +
         "(1/2)(4√2)(4√2) = (1/2)(32) = 16. Checking: 4√2 ≈ 5.657, and 5.657^2 ≈ 32, " +
-        "so 2(32) = 64 = 8^2 as required. Hence the area is 16 square units and the perimeter is 8 + 8√2.";
+        "so 2(32) = 64 = 8^2 as required. Hence the area is 16 square units.";
       var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
       var DUR = 7000, raf = null, t0 = null;
       function frame(ts) {
