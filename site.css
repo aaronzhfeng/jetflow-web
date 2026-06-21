@@ -1684,3 +1684,21 @@ body.dark .theme-toggle #sun { display: inline; }
 }
 .engine-demo-figure .ed-stream { height: 240px; min-height: 240px; max-height: 240px; }
 .engine-demo-figure .ed-metrics .metric strong { font-size: 14px; }
+
+/* ============================================================
+   Dark-mode skin for the live demos. The race lanes + the engine
+   replay use a deliberately-light "document card" skin with
+   hardcoded white backgrounds, so they stayed light in dark mode
+   while the rest of the page (and the §3 tree canvas) flipped.
+   Re-skin the demo interior to the dark palette under body.dark.
+   ============================================================ */
+body.dark .player-shell .lane-card { background: var(--card); border-color: var(--rule); box-shadow: none; }
+body.dark .player-shell .lane-card.leader { border-color: var(--accent); }
+body.dark .player-shell .terminal-chrome { background: var(--paper-soft); border-bottom-color: var(--rule); }
+body.dark .player-shell .terminal-body { background: var(--card); }
+body.dark .player-shell .stream-text { background: var(--paper); border-color: var(--rule); }
+body.dark .player-shell .stream-burst.is-linked { background: rgba(92, 192, 144, 0.12); }
+body.dark .player-shell .metric { background: var(--paper-soft); border-color: var(--rule); }
+body.dark .player-shell .progress-track { background: var(--paper); border-color: var(--rule); }
+body.dark .player-shell .controls { background: var(--card); border-bottom-color: var(--rule); }
+body.dark .player-shell .lane-foot .finish-badge { background: var(--accent); color: #fff; }
