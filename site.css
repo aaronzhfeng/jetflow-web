@@ -8,7 +8,7 @@
   --ink: #1f1f1f;          /* body text (PaperMod --content) */
   --primary: #1e1e1e;      /* headings (PaperMod --primary) */
   --muted: #6c6c6c;        /* PaperMod --secondary */
-  --faint: #9a9a9a;
+  --faint: #767676;        /* AA contrast (4.5:1 on white) for source/honesty notes */
   --rule: #ebebeb;         /* PaperMod --border */
   --rule-strong: #d6d6d6;  /* PaperMod --tertiary */
   --accent: #1f6f8f;       /* one restrained teal accent (links / active tabs) */
@@ -27,8 +27,8 @@
   --scope-warn: #d7aa5d;
   --scope-bad: #d47a72;
   /* PaperMod is all system-sans; --serif aliases the same stack (no web fonts) */
-  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  --serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Monaco, "Cascadia Code", "Roboto Mono", monospace;
   --maxw: 1040px;     /* ONE width shared by the demo, text, and tables */
   --measure: 1040px;  /* text shares the demo width (no breakout) */

@@ -6,13 +6,17 @@
   <meta name="color-scheme" content="light dark">
   <title>JetFlow: Parallel Tree Drafting</title>
   <meta name="description" content="JetFlow: Breaking the Scaling Ceiling of Speculative Decoding with Parallel Tree Drafting. Live decoding replay + results from the paper.">
+  <link rel="alternate" hreflang="en" href="index.html">
+  <link rel="alternate" hreflang="zh-CN" href="index.zh.html">
   <link rel="stylesheet" href="site.css">
 </head>
 <body>
   <script>
     (function () {
-      // default to light (white); only honour an explicit user toggle
-      if (localStorage.getItem("jf-theme") === "dark") document.body.classList.add("dark");
+      // honour an explicit user choice; otherwise follow the OS colour scheme
+      var stored = localStorage.getItem("jf-theme");
+      var osDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (stored === "dark" || (!stored && osDark)) document.body.classList.add("dark");
     })();
   </script>
 
@@ -21,7 +25,7 @@
       <a class="brand" href="https://haoailab.com/" title="Hao AI Lab @ UCSD">Hao AI Lab · UC San Diego</a>
       <div class="topbar-tools">
         <a id="lang-toggle" class="lang-toggle" href="index.zh.html" aria-label="切换到中文">中文</a>
-        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark">
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark" aria-pressed="false">
         <svg id="moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
         <svg id="sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
@@ -36,8 +40,8 @@
       </p>
       <p class="affiliations"><sup>1</sup>UC San Diego &nbsp; <sup>2</sup>Zhejiang University &nbsp; <sup>3</sup>UIUC &nbsp; <sup>4</sup>Nanjing University &nbsp; <sup>5</sup>StepFun</p>
       <nav class="resource-links" aria-label="Project resources">
-        <a href="#">[Paper]</a>
-        <a href="https://github.com/snyhlxde1/parallel-tree-decoding">[Code]</a>
+        <a href="https://arxiv.org/abs/2606.18394">[Paper]</a>
+        <a href="https://github.com/hao-ai-lab/JetFlow">[Code]</a>
         <a href="#bibtex">[BibTeX]</a>
       </nav>
     </header>
@@ -197,9 +201,11 @@
         JetFlow runs on its own standalone inference engine, with no dependency on an external serving stack. It
         takes the minimalist philosophy of nano-vLLM as a starting point but is otherwise its own engine. The
         target verifies every speculative tree node in one forward pass under a tree-attention mask, and the
-        acceptance rule is lossless by construction, so the reported speedups and average accepted length are
-        invariant to hardware under lossless computation. A fused SM90 paged FlashAttention kernel (NVIDIA CuTe
-        DSL) applies the tree mask inside attention, without materializing a dense per-request mask.
+        acceptance rule is lossless by construction, preserving the target&rsquo;s output exactly. The mean
+        accepted length is therefore a property of the model and draft tree rather than the hardware, while the
+        end-to-end speedup and throughput depend on the GPU&rsquo;s compute and bandwidth. A fused SM90 paged
+        FlashAttention kernel (NVIDIA CuTe DSL) applies the tree mask inside attention, without materializing a
+        dense per-request mask.
       </p>
 
       <div class="hero-tps">
@@ -340,18 +346,21 @@
     <!-- ===================== BIBTEX ===================== -->
     <section class="section bib-section" id="bibtex">
       <h2>BibTeX</h2>
-      <pre><code>@inproceedings{jetflow2026,
+      <pre><code>@misc{hu2026jetflow,
   title  = {JetFlow: Breaking the Scaling Ceiling of Speculative Decoding with Parallel Tree Drafting},
   author = {Hu, Lanxiang and Feng, Zhaoxiang and Wu, Yulun and Yuan, Haoran and Zhao, Yujie and
             Qian, Yu-Yang and Wang, Bojun and Jiang, Daxin and Zhu, Yibo and Rosing, Tajana and Zhang, Hao},
   year   = {2026},
-  note   = {Preprint}
+  eprint = {2606.18394},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.CL},
+  url    = {https://arxiv.org/abs/2606.18394}
 }</code></pre>
     </section>
 
     <footer class="footer">
-      <a href="#">Paper</a>
-      <a href="https://github.com/snyhlxde1/parallel-tree-decoding">Code</a>
+      <a href="https://arxiv.org/abs/2606.18394">Paper</a>
+      <a href="https://github.com/hao-ai-lab/JetFlow">Code</a>
       <a href="#demo">Live demo</a>
     </footer>
       <p class="preview-note" style="text-align:center; font:12px/1.6 var(--sans); color:var(--faint); margin:10px 0 0;">Preview build: the live replay uses simulated timing; the results tables are the paper’s measured numbers. §3 tree is illustrative.</p>
@@ -359,7 +368,8 @@
   </main>
 
   <script>
-    window.PTD_DEMO_AUTOSTART = true;   /* demo autoplays on load */
+    /* autoplay on load, unless the visitor asked for reduced motion */
+    window.PTD_DEMO_AUTOSTART = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
     window.PTD_DEMO_LANES = window.PTD_DEMO_LANES || [];
   </script>
   <script src="lane_ar_hf.js"></script>
@@ -400,9 +410,12 @@
     (function () {
       var btn = document.getElementById("theme-toggle");
       if (!btn) return;
+      var sync = function () { btn.setAttribute("aria-pressed", document.body.classList.contains("dark") ? "true" : "false"); };
+      sync();
       btn.addEventListener("click", function () {
         document.body.classList.toggle("dark");
         localStorage.setItem("jf-theme", document.body.classList.contains("dark") ? "dark" : "light");
+        sync();
       });
     })();
   </script>
