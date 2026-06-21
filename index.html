@@ -350,9 +350,9 @@
       <p>
         The speedups above are end-to-end and lossless, but not uniform. Sampling (T=1) margins are smaller than
         greedy decoding, and on the hardest reasoning sets such as AIME25 the lead over the strongest diffusion
-        baseline narrows. The measured serving speedup (6.64&times; on a single B200) sits below the 9.64&times;
-        algorithmic ceiling, because real serving adds kernel-launch and host overhead that the accepted-length
-        ratio does not capture. The optimal draft budget is itself a trade-off: a larger tree raises accepted
+        baseline narrows. Wall-clock serving speedups also run below the paper&rsquo;s algorithmic speedups,
+        because real serving adds kernel-launch and host overhead that the accepted-length ratio does not
+        capture. The optimal draft budget is itself a trade-off: a larger tree raises accepted
         length but also the per-round verification cost, so the best operating point depends on the model and
         the hardware.
       </p>
